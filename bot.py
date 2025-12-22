@@ -1,6 +1,7 @@
 import os
 import requests
 import random
+import asyncio
 from pymongo import MongoClient
 from telegram import (
     Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -28,40 +29,73 @@ users = db["users"]
 blocked = db["blocked_users"]
 
 # ================= Helpers =================
-def is_owner(uid): return uid == OWNER_ID
-def is_blocked(uid): return blocked.find_one({"user_id": uid, "blocked": True})
+def is_owner(uid): 
+    return uid == OWNER_ID
+
+def is_blocked(uid): 
+    return blocked.find_one({"user_id": uid, "blocked": True}) is not None
 
 async def is_admin(update, context):
     chat = update.effective_chat
-    user = update.effective_user
     if chat.type == "private":
         return False
-    member = await context.bot.get_chat_member(chat.id, user.id)
-    return member.status in ["administrator", "creator"]
+    member = await context.bot.get_chat_member(chat.id, update.effective_user.id)
+    return member.status in ("administrator", "creator")
 
 # ================= Language =================
 LANG_PROMPTS = {
-    "en": "Reply only in English.",
-    "hi": "केवल हिंदी में उत्तर दें।"
+    "en": (
+        "Reply only in English. "
+        "Write like a human, soft handwritten style. "
+        "Use emojis ONLY when they naturally fit the emotion."
+    ),
+    "hi": (
+        "केवल हिंदी में उत्तर दें। "
+        "इंसान की तरह नरम लिखावट रखें। "
+        "जहाँ भावनात्मक रूप से सही लगे वहीं इमोजी का प्रयोग करें।"
+    )
 }
 
 LANG_BUTTONS = [
     [("🇮🇳 Hindi", "lang_hi"), ("🇬🇧 English", "lang_en")]
 ]
 
-# ================= OpenRouter =================
-def ask_ai(messages):
-    r = requests.post(
-        "https://openrouter.ai/api/v1/chat/completions",
-        headers={
-            "Authorization": f"Bearer {OPENROUTER_KEY}",
-            "Content-Type": "application/json"
-        },
-        json={"model": MODEL, "messages": messages},
-        timeout=60
-    )
-    r.raise_for_status()
-    return r.json()["choices"][0]["message"]["content"]
+# ================= SAFE AI =================
+def safe_ai(messages):
+    try:
+        r = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={"model": MODEL, "messages": messages},
+            timeout=60
+        )
+        r.raise_for_status()
+        return r.json()["choices"][0]["message"]["content"]
+    except Exception:
+        return "🙂 अभी थोड़ी दिक्कत आ रही है, थोड़ी देर बाद फिर कोशिश करें।"
+
+# ================= TYPEWRITER EFFECT =================
+async def typewriter_reply(update, context, text, delay=0.6):
+    chat_id = update.effective_chat.id
+    text = text.strip()
+    parts = []
+
+    while len(text) > 0:
+        if len(text) > 80:
+            cut = text[:80].rfind(" ")
+            cut = cut if cut != -1 else 80
+        else:
+            cut = len(text)
+        parts.append(text[:cut])
+        text = text[cut:].lstrip()
+
+    for part in parts:
+        await context.bot.send_chat_action(chat_id, "typing")
+        await asyncio.sleep(delay)
+        await update.message.reply_text(part)
 
 # ================= BOT =================
 app = ApplicationBuilder().token(TOKEN).build()
@@ -78,52 +112,39 @@ async def language_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
     lang = q.data.split("_")[1]
-    users.update_one(
-        {"chat_id": q.message.chat_id},
-        {"$set": {"lang": lang}},
-        upsert=True
-    )
+    users.update_one({"chat_id": q.message.chat_id}, {"$set": {"lang": lang}}, upsert=True)
     await q.message.reply_text(f"✅ Language set to {lang.upper()}")
 
 # ---------- /id ----------
 async def id_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    u = update.effective_user
-    await update.message.reply_text(f"🆔 Your ID: `{u.id}`", parse_mode="Markdown")
+    await update.message.reply_text(
+        f"🆔 Your ID: `{update.effective_user.id}`",
+        parse_mode="Markdown"
+    )
 
 # ---------- /joke ----------
 async def joke_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("😂 Joke soch raha hoon...")
-
     messages = [
-        {"role": "system", "content": "Tell a short, clean, funny joke."},
+        {"role": "system", "content": "Tell a short, clean, funny joke. Use emoji only if it fits."},
         {"role": "user", "content": "Tell me a joke"}
     ]
-
-    joke = safe_ai(messages)
-
-    await update.message.reply_text(
-        joke,
-        reply_to_message_id=update.message.message_id
-    )
+    reply = safe_ai(messages)
+    await typewriter_reply(update, context, reply)
 
 # ---------- /shayri ----------
 async def shayri_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("✍️ Shayari likh raha hoon...")
-
     messages = [
         {
             "role": "system",
-            "content": "Write a beautiful, short Hindi shayari. Keep it emotional and poetic."
+            "content": (
+                "Write a beautiful short Hindi shayari. "
+                "Emotional, poetic. Use emoji only if it fits naturally."
+            )
         },
         {"role": "user", "content": "Ek acchi si shayari likho"}
     ]
-
-    shayari = safe_ai(messages)
-
-    await update.message.reply_text(
-        shayari,
-        reply_to_message_id=update.message.message_id
-    )
+    reply = safe_ai(messages)
+    await typewriter_reply(update, context, reply)
 
 # ---------- /image ----------
 async def image_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -157,11 +178,8 @@ async def image_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
             photo=img_url,
             caption=f"🖼 Generated Image\n\nPrompt:\n{prompt}"
         )
-
-    except Exception as e:
-        await update.message.reply_text(
-            "❌ Image generate nahi ho paayi.\nBaad me try karo."
-        )
+    except Exception:
+        await update.message.reply_text("❌ Image generate nahi ho paayi.")
 
 # ---------- GROUP BAN ----------
 async def ban_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -176,15 +194,11 @@ async def ban_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
             target = int(context.args[0])
         except:
-            await update.message.reply_text("Invalid user ID")
             return
 
-    if not target:
-        await update.message.reply_text("Reply or use /ban <user_id>")
-        return
-
-    await context.bot.ban_chat_member(chat.id, target)
-    await update.message.reply_text("🚫 User banned")
+    if target:
+        await context.bot.ban_chat_member(chat.id, target)
+        await update.message.reply_text("🚫 User banned")
 
 # ---------- CHAT ----------
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -204,7 +218,7 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         })
 
     msgs.append({"role": "user", "content": update.message.text})
-    reply = ask_ai(msgs)
+    reply = safe_ai(msgs)
     msgs.append({"role": "assistant", "content": reply})
 
     users.update_one(
@@ -219,13 +233,9 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     mention = f"[{user.first_name}](tg://user?id={user.id})"
-    await update.message.reply_text(
-        f"{mention}\n{reply}",
-        parse_mode="Markdown",
-        reply_to_message_id=update.message.message_id
-    )
+    await typewriter_reply(update, context, f"{mention}\n{reply}")
 
-# ---------- OWNER DASHBOARD ----------
+# ---------- OWNER PANEL ----------
 async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_owner(update.effective_user.id):
         return
@@ -248,5 +258,5 @@ app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 
 # ================= RUN =================
 if __name__ == "__main__":
-    print("🤖 Bot running in POLLING mode (ALL FEATURES)")
+    print("🤖 Bot running in POLLING mode (FINAL HUMAN STYLE)")
     app.run_polling(drop_pending_updates=True)
