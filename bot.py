@@ -136,6 +136,7 @@ Admin:
 👑Owner:
 /botban  
 /botunban  
+/stats
 
 ✔ Tag reply  
 ✔ Typing ON  
@@ -401,7 +402,70 @@ async def id_cmd(update, context):
         f"💬 Chat ID: `{chat.id}`",
         parse_mode="Markdown"
     )
+from datetime import datetime, timedelta
 
+# ================= STATS =================
+async def stats(update, context):
+    if not is_owner(update.effective_user.id):
+        return await update.message.reply_text("❌ Owner only command")
+
+    total_users = users.count_documents({})
+    total_banned = bot_bans.count_documents({})
+
+    # unique groups
+    total_groups = len(
+        chat_logs.distinct(
+            "chat_id", {"chat_type": {"$in": ["group", "supergroup"]}}
+        )
+    )
+
+    # daily active users (last 24 hours)
+    since = time.time() - 86400
+    daily_active = len(
+        chat_logs.distinct("user_id", {"time": {"$gte": since}})
+    )
+
+    await update.message.reply_text(
+        f"📊 **BOT DASHBOARD**\n\n"
+        f"👥 Total Users: `{total_users}`\n"
+        f"🔥 Daily Active Users: `{daily_active}`\n"
+        f"👨‍👩‍👧‍👦 Total Groups: `{total_groups}`\n"
+        f"🚫 Bot Banned Users: `{total_banned}`",
+        parse_mode="Markdown"
+    )
+    # ================= BROADCAST (TELEGRAM ONLY) =================
+async def broadcast(update, context):
+    if not is_owner(update.effective_user.id):
+        return await update.message.reply_text("❌ Owner only command")
+
+    if not context.args:
+        return await update.message.reply_text(
+            "❌ Use:\n/broadcast Your message here"
+        )
+
+    msg = " ".join(context.args)
+
+    sent = 0
+    failed = 0
+
+    await update.message.reply_text("📤 Broadcast start ho raha hai...")
+
+    for u in users.find({}, {"user_id": 1}):
+        try:
+            await context.bot.send_message(
+                chat_id=u["user_id"],
+                text=msg
+            )
+            sent += 1
+            await asyncio.sleep(0.05)  # anti-flood (IMPORTANT)
+        except:
+            failed += 1
+
+    await update.message.reply_text(
+        f"✅ Broadcast complete\n\n"
+        f"📨 Sent: {sent}\n"
+        f"❌ Failed: {failed}"
+    )
 # ================= APP =================
 app = ApplicationBuilder().token(TOKEN).build()
 
@@ -418,6 +482,7 @@ app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 app.add_handler(CommandHandler("addbadword", addbadword))
 app.add_handler(CommandHandler("removebadword", removebadword))
 app.add_handler(CommandHandler("id", id_cmd))
-
-print("🤖 BOT RUNNING – MERGED FULL SYSTEM")
+app.add_handler(CommandHandler("stats", stats))
+app.add_handler(CommandHandler("broadcast", broadcast))
+print("🤖 BOT STARTED BY HARRY TG @SANATANI_BACHA")
 app.run_polling(drop_pending_updates=True)
