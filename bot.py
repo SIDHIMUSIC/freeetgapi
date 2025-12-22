@@ -288,7 +288,7 @@ async def botunban(update, context):
 
     uid = int(context.args[0])
     bot_bans.delete_one({"user_id": uid})
-    await update.message.reply_text("✅ User globally unbanned")
+    await update.message.reply_text("✅ User globally unbanned 🫶")
 
 
 # 🔹 GROUP ADMIN – BAN
