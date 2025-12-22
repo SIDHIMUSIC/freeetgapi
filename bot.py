@@ -1,4 +1,5 @@
 import os
+import asyncio
 import requests
 from pymongo import MongoClient
 from telegram import (
@@ -8,8 +9,9 @@ from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler,
     CallbackQueryHandler, ContextTypes, filters
 )
+from telegram.constants import ChatAction
 
-# ========= ENV =========
+# ================= ENV =================
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
 MONGO_URI = os.getenv("MONGODB_URI")
@@ -18,16 +20,16 @@ SUPPORT_CHANNEL = os.getenv("SUPPORT_CHANNEL")
 LOG_CHANNEL_ID = int(os.getenv("LOG_CHANNEL_ID", "0"))
 
 if not all([TOKEN, OPENROUTER_KEY, MONGO_URI, OWNER_ID, SUPPORT_CHANNEL, LOG_CHANNEL_ID]):
-    raise RuntimeError("Missing ENV variables")
+    raise RuntimeError("❌ Missing ENV variables")
 
 MODEL = "deepseek/deepseek-chat"
 
-# ========= MongoDB =========
+# ================= MongoDB =================
 client = MongoClient(MONGO_URI)
 db = client["telegram_bot"]
 users = db["users"]
 
-# ========= Languages =========
+# ================= Languages =================
 LANG = {
     "en": "Reply only in English.",
     "hi": "केवल हिंदी में उत्तर दें।",
@@ -42,7 +44,7 @@ LANG_BTN = {
     "fr": "🇫🇷 French"
 }
 
-# ========= OpenRouter =========
+# ================= OpenRouter =================
 def ask_ai(messages):
     r = requests.post(
         "https://openrouter.ai/api/v1/chat/completions",
@@ -53,9 +55,10 @@ def ask_ai(messages):
         json={"model": MODEL, "messages": messages},
         timeout=60
     )
+    r.raise_for_status()
     return r.json()["choices"][0]["message"]["content"]
 
-# ========= START =========
+# ================= /start =================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     kb = [
         [InlineKeyboardButton("🌍 Language", callback_data="language")],
@@ -67,7 +70,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=InlineKeyboardMarkup(kb)
     )
 
-# ========= BUTTONS =========
+# ================= Buttons =================
 async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
@@ -89,7 +92,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         await q.message.reply_text(f"✅ Language set to {LANG_BTN[code]}")
 
-# ========= COMMANDS =========
+# ================= Commands =================
 async def language(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await start(update, context)
 
@@ -99,17 +102,45 @@ async def get_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text += f"\n👥 Group ID: `{update.effective_chat.id}`"
     await update.message.reply_text(text, parse_mode="Markdown")
 
+# ================= BAN (reply + username) =================
 async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != OWNER_ID:
         return
-    if not update.message.reply_to_message:
-        await update.message.reply_text("Reply to user to ban.")
-        return
-    await update.effective_chat.ban_member(
-        update.message.reply_to_message.from_user.id
-    )
-    await update.message.reply_text("🚫 User banned.")
 
+    chat = update.effective_chat
+
+    admins = await chat.get_administrators()
+    admin_ids = [a.user.id for a in admins]
+
+    target_id = None
+
+    # Case 1: reply
+    if update.message.reply_to_message:
+        target_id = update.message.reply_to_message.from_user.id
+
+    # Case 2: /ban @username
+    elif context.args:
+        username = context.args[0].lstrip("@")
+        doc = users.find_one({"username": username})
+        if doc:
+            target_id = doc["user_id"]
+        else:
+            await update.message.reply_text(
+                "❌ User not found.\nUser ne pehle bot/group me message bheja hona chahiye."
+            )
+            return
+    else:
+        await update.message.reply_text("Use:\n/ban @username\nor reply + /ban")
+        return
+
+    if target_id in admin_ids:
+        await update.message.reply_text("❌ Admin ko ban nahi kiya ja sakta.")
+        return
+
+    await chat.ban_member(target_id)
+    await update.message.reply_text(f"🚫 User banned successfully\nID: {target_id}")
+
+# ================= Image =================
 async def image(update: Update, context: ContextTypes.DEFAULT_TYPE):
     prompt = " ".join(context.args)
     if not prompt:
@@ -118,10 +149,11 @@ async def image(update: Update, context: ContextTypes.DEFAULT_TYPE):
     img = f"https://image.pollinations.ai/prompt/{prompt}"
     await update.message.reply_photo(photo=img, caption=prompt)
 
-# ========= CHAT =========
+# ================= Chat =================
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
     text = update.message.text
+    user = update.effective_user
 
     doc = users.find_one({"chat_id": chat_id}) or {}
     lang = doc.get("lang", "en")
@@ -136,19 +168,29 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     users.update_one(
         {"chat_id": chat_id},
-        {"$set": {"chat_id": chat_id, "lang": lang, "messages": msgs[-20:]}},
+        {"$set": {
+            "chat_id": chat_id,
+            "user_id": user.id,
+            "username": user.username,
+            "lang": lang,
+            "messages": msgs[-20:]
+        }},
         upsert=True
     )
 
-    # LOG
+    # typing animation
+    await update.message.chat.send_action(ChatAction.TYPING)
+    await asyncio.sleep(1.5)
+
+    # log
     await context.bot.send_message(
         LOG_CHANNEL_ID,
-        f"📝 Chat ID: {chat_id}\n👤 User: {update.effective_user.id}\n💬 {text}"
+        f"📝 Chat ID: {chat_id}\n👤 User: @{user.username} ({user.id})\n💬 {text}"
     )
 
     await update.message.reply_text(reply)
 
-# ========= RUN =========
+# ================= RUN =================
 app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
@@ -159,5 +201,5 @@ app.add_handler(CommandHandler("image", image))
 app.add_handler(CallbackQueryHandler(buttons))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 
-print("🤖 Bot running with FULL features")
+print("🤖 Bot running (FINAL VERSION)")
 app.run_polling()
