@@ -1,4 +1,3 @@
-LOG_GROUP_ID = int(os.getenv("LOG_GROUP_ID", "0"))
 import os, requests, random, asyncio, time
 from pymongo import MongoClient
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -13,7 +12,7 @@ OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
 MONGO_URI = os.getenv("MONGODB_URI")
 OWNER_ID = int(os.getenv("OWNER_ID", "0"))
 SUPPORT_CHANNEL = "https://t.me/TG_BIO_STYLE"
-
+int(os.getenv("LOG_GROUP_ID", "0")) 
 if not all([TOKEN, OPENROUTER_KEY, MONGO_URI, OWNER_ID]):
     raise RuntimeError("Missing ENV variables")
 
