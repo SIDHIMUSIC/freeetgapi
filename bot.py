@@ -11,12 +11,13 @@ TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
 MONGO_URI = os.getenv("MONGODB_URI")
 OWNER_ID = int(os.getenv("OWNER_ID", "0"))
+LOG_GROUP_ID = int(os.getenv("LOG_GROUP_ID", "0"))
 SUPPORT_CHANNEL = "https://t.me/TG_BIO_STYLE"
-int(os.getenv("LOG_GROUP_ID", "0")) 
-if not all([TOKEN, OPENROUTER_KEY, MONGO_URI, OWNER_ID]):
-    raise RuntimeError("Missing ENV variables")
 
 MODEL = "deepseek/deepseek-chat"
+
+if not all([TOKEN, OPENROUTER_KEY, MONGO_URI, OWNER_ID]):
+    raise RuntimeError("Missing ENV variables")
 
 # ================= DB =================
 db = MongoClient(MONGO_URI)["telegram_bot"]
@@ -24,27 +25,13 @@ users = db.users
 bot_bans = db.bot_bans
 ban_logs = db.ban_logs
 spam = db.spam
+chat_logs = db.chat_logs
 
 # ================= HELPERS =================
-def is_owner(uid): 
+def is_owner(uid):
     return uid == OWNER_ID
 
-def is_bot_banned(uid): 
-    return bot_bans.find_one({"user_id": uid}) is not None
-
-async def is_admin(update, context):
-    if update.effective_chat.type == "private":
-        return False
-    m = await context.bot.get_chat_member(
-        update.effective_chat.id,
-        update.effective_user.id
-    )
-    return m.status in ("administrator", "creator")
-    # ================= HELPERS =================
-def is_owner(uid): 
-    return uid == OWNER_ID
-
-def is_bot_banned(uid): 
+def is_bot_banned(uid):
     return bot_bans.find_one({"user_id": uid}) is not None
 
 async def is_admin(update, context):
@@ -56,19 +43,34 @@ async def is_admin(update, context):
     )
     return m.status in ("administrator", "creator")
 
+# ================= LOG EVERY MESSAGE =================
+async def log_message(update, context):
+    user = update.effective_user
+    text = update.message.text
 
-# ================= LOG HELPER =================
-async def send_log(context, text):
-    if LOG_GROUP_ID == 0:
-        return
-    try:
-        await context.bot.send_message(
-            chat_id=LOG_GROUP_ID,
-            text=text,
-            parse_mode="Markdown"
-        )
-    except Exception:
-        pass
+    log_text = (
+        f"📩 NEW MESSAGE\n\n"
+        f"👤 Name: {user.first_name}\n"
+        f"🆔 User ID: {user.id}\n"
+        f"💬 Chat ID: {update.effective_chat.id}\n"
+        f"🕒 Time: {time.strftime('%d-%m-%Y %H:%M:%S')}\n\n"
+        f"📝 Message:\n{text}"
+    )
+
+    if LOG_GROUP_ID:
+        try:
+            await context.bot.send_message(LOG_GROUP_ID, log_text)
+        except:
+            pass
+
+    chat_logs.insert_one({
+        "user_id": user.id,
+        "name": user.first_name,
+        "username": user.username,
+        "chat_id": update.effective_chat.id,
+        "text": text,
+        "time": time.time()
+    })
 
 # ================= AI =================
 def safe_ai(messages):
@@ -79,11 +81,11 @@ def safe_ai(messages):
             json={"model": MODEL, "messages": messages},
             timeout=60
         )
-        r.raise_for_status()
         return r.json()["choices"][0]["message"]["content"]
-    except Exception:
+    except:
         return "🙂 Abhi thodi dikkat aa rahi hai, baad me try karo."
 
+# ================= TYPING =================
 async def typing_reply(update, context, text):
     await context.bot.send_chat_action(update.effective_chat.id, "typing")
     await asyncio.sleep(0.4)
@@ -100,31 +102,54 @@ START_IMAGES = [
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     kb = InlineKeyboardMarkup([
         [InlineKeyboardButton("🌍 Language", callback_data="open_lang")],
-        [InlineKeyboardButton("📢 Support Channel", url=SUPPORT_CHANNEL)]
+        [InlineKeyboardButton("ℹ️ Help", callback_data="help")],
+        [InlineKeyboardButton("📢 Support", url=SUPPORT_CHANNEL)]
     ])
     await update.message.reply_photo(
         photo=random.choice(START_IMAGES),
-        caption=(
-            f"👋 Hi {update.effective_user.first_name}!\n\n"
-            "🤖 Main ek smart AI bot hoon.\n"
-            "💬 Chat • 😂 Joke • ✍️ Shayari • 🖼 Image\n\n"
-            "👇 owner @SANATANI_BACHA 👑"
-        ),
+        caption=f"👋 Hi {update.effective_user.first_name}\n🤖 Smart AI Bot Ready",
         reply_markup=kb
     )
+
+# ================= HELP =================
+HELP_TEXT = """
+🤖 BOT FULL FUNCTION LIST
+
+/start – Bot start  
+/help – All functions  
+/id – User & Chat ID  
+/language – Hindi / English  
+
+/image <prompt> – AI Image  
+
+Auto:
+• joke / funny → Joke  
+• shayari / love / sad → Shayari  
+
+Admin:
+/ban  
+/unban  
+
+Owner:
+/botban  
+/botunban  
+
+✔ Tag reply  
+✔ Typing ON  
+✔ Logs ON  
+✔ Memory ON
+"""
+
+async def help_cmd(update, context):
+    await update.message.reply_text(HELP_TEXT, parse_mode="Markdown")
 
 # ================= LANGUAGE =================
 async def language(update, context):
     kb = InlineKeyboardMarkup([
-        [
-            InlineKeyboardButton("🇮🇳 Hindi", callback_data="hi"),
-            InlineKeyboardButton("🇬🇧 English", callback_data="en")
-        ]
+        [InlineKeyboardButton("🇮🇳 Hindi", callback_data="hi"),
+         InlineKeyboardButton("🇬🇧 English", callback_data="en")]
     ])
-    if update.message:
-        await update.message.reply_text("Choose language:", reply_markup=kb)
-    else:
-        await update.callback_query.message.reply_text("Choose language:", reply_markup=kb)
+    await update.effective_message.reply_text("Choose language:", reply_markup=kb)
 
 async def lang_cb(update, context):
     q = update.callback_query
@@ -134,61 +159,20 @@ async def lang_cb(update, context):
         await language(update, context)
         return
 
-    if q.data in ("hi", "en"):
-        users.update_one(
-            {"chat_id": q.message.chat_id},
-            {"$set": {"lang": q.data}},
-            upsert=True
-        )
-        await q.message.reply_text("✅ Language set")
+    users.update_one(
+        {"user_id": q.from_user.id},
+        {"$set": {"lang": q.data}},
+        upsert=True
+    )
+    await q.message.reply_text("✅ Language set")
 
-# ================= OWNER BOT BAN =================
-async def botban(update, context):
-    if not is_owner(update.effective_user.id):
-        return
+# ================= IMAGE =================
+async def image_cmd(update, context):
     if not context.args:
-        return
-    uid = int(context.args[0])
-    bot_bans.update_one({"user_id": uid}, {"$set": {"user_id": uid}}, upsert=True)
-    await update.message.reply_text("🚫 User bot-banned")
-
-async def botunban(update, context):
-    if not is_owner(update.effective_user.id):
-        return
-    uid = int(context.args[0])
-    bot_bans.delete_one({"user_id": uid})
-    await update.message.reply_text("✅ User bot-unbanned")
-
-# ================= GROUP BAN =================
-async def ban(update, context):
-    if not await is_admin(update, context):
-        return
-
-    uid = None
-    if update.message.reply_to_message:
-        uid = update.message.reply_to_message.from_user.id
-    elif context.args and context.args[0].isdigit():
-        uid = int(context.args[0])
-
-    if not uid:
-        return
-
-    await context.bot.ban_chat_member(update.effective_chat.id, uid)
-    ban_logs.insert_one({
-        "chat_id": update.effective_chat.id,
-        "user_id": uid,
-        "time": time.time()
-    })
-    await update.message.reply_text("🚫 User banned")
-
-async def unban(update, context):
-    if not await is_admin(update, context):
-        return
-    if not context.args:
-        return
-    uid = int(context.args[0])
-    await context.bot.unban_chat_member(update.effective_chat.id, uid)
-    await update.message.reply_text("✅ User unbanned")
+        return await update.message.reply_text("/image prompt do")
+    prompt = " ".join(context.args)
+    url = f"https://image.pollinations.ai/prompt/{prompt.replace(' ', '%20')}"
+    await update.message.reply_photo(url, caption=f"🖼 {prompt}")
 
 # ================= AUTO MOD =================
 BAD_WORDS = ["spamword1", "spamword2"]
@@ -204,49 +188,70 @@ async def auto_mod(update, context):
     last = spam.find_one({"user": uid})
     if last and time.time() - last["time"] < 3:
         await update.message.reply_text("⚠️ Spam mat karo")
+
     spam.update_one({"user": uid}, {"$set": {"time": time.time()}}, upsert=True)
+
+# ================= BAN SYSTEM =================
+async def botban(update, context):
+    if not is_owner(update.effective_user.id):
+        return
+    uid = int(context.args[0])
+    bot_bans.update_one({"user_id": uid}, {"$set": {"user_id": uid}}, upsert=True)
+    await update.message.reply_text("🚫 Global bot ban")
+
+async def botunban(update, context):
+    if not is_owner(update.effective_user.id):
+        return
+    uid = int(context.args[0])
+    bot_bans.delete_one({"user_id": uid})
+    await update.message.reply_text("✅ Global unban")
+
+async def ban(update, context):
+    if not await is_admin(update, context):
+        return
+    uid = update.message.reply_to_message.from_user.id
+    await context.bot.ban_chat_member(update.effective_chat.id, uid)
+    await update.message.reply_text("🚫 User banned")
+
+async def unban(update, context):
+    if not await is_admin(update, context):
+        return
+    uid = int(context.args[0])
+    await context.bot.unban_chat_member(update.effective_chat.id, uid)
+    await update.message.reply_text("✅ User unbanned")
 
 # ================= CHAT =================
 async def chat(update, context):
     user = update.effective_user
+    text = update.message.text.lower()
 
     if is_bot_banned(user.id):
         return
 
+    await log_message(update, context)
     await auto_mod(update, context)
 
-    chat_id = update.effective_chat.id
-    doc = users.find_one({"chat_id": chat_id}) or {}
-    msgs = doc.get("messages", [])
-    lang = doc.get("lang", "en")
-
-    if not msgs:
-        msgs.append({
-            "role": "system",
-            "content": (
-                f"The user's name is {user.first_name}. "
-                "Reply like a human. "
-                "Use the user's name sometimes. "
-                "Use emojis only when they naturally fit."
-            )
-        })
-
-    msgs.append({"role": "user", "content": update.message.text})
-    reply = safe_ai(msgs)
-    msgs.append({"role": "assistant", "content": reply})
-
     users.update_one(
-        {"chat_id": chat_id},
+        {"user_id": user.id},
         {"$set": {
-            "chat_id": chat_id,
-            "user_id": user.id,
             "first_name": user.first_name,
             "username": user.username,
-            "lang": lang,
-            "messages": msgs[-20:]
+            "last_seen": time.time()
         }},
         upsert=True
     )
+
+    if "joke" in text or "funny" in text or "hasi" in text:
+        system = "Tell a short funny joke in Hinglish with emojis."
+    elif "shayari" in text or "love" in text or "sad" in text:
+        system = "Write a beautiful Hindi shayari with emojis."
+    else:
+        system = f"Chat naturally with user named {user.first_name}."
+
+    reply = safe_ai([
+        {"role": "system", "content": system},
+        {"role": "user", "content": update.message.text}
+    ])
 
     mention = f"[{user.first_name}](tg://user?id={user.id})"
     await typing_reply(update, context, f"{mention}\n{reply}")
@@ -255,13 +260,15 @@ async def chat(update, context):
 app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("help", help_cmd))
 app.add_handler(CommandHandler("language", language))
-app.add_handler(CallbackQueryHandler(lang_cb))
-app.add_handler(CommandHandler("botban", botban))
-app.add_handler(CommandHandler("botunban", botunban))
+app.add_handler(CommandHandler("image", image_cmd))
 app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("unban", unban))
+app.add_handler(CommandHandler("botban", botban))
+app.add_handler(CommandHandler("botunban", botunban))
+app.add_handler(CallbackQueryHandler(lang_cb))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 
-print("🤖 BOT RUNNING (FINAL)")
+print("🤖 BOT RUNNING – MERGED FULL SYSTEM")
 app.run_polling(drop_pending_updates=True)
