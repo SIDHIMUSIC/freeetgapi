@@ -1,39 +1,48 @@
 import os
-import threading
 import requests
-from flask import Flask, jsonify
 from pymongo import MongoClient
-from telegram import Update
+from telegram import (
+    Update, InlineKeyboardButton, InlineKeyboardMarkup
+)
 from telegram.ext import (
-    ApplicationBuilder, CommandHandler,
-    MessageHandler, ContextTypes, filters
+    ApplicationBuilder, CommandHandler, MessageHandler,
+    CallbackQueryHandler, ContextTypes, filters
 )
 
-# ========== ENV ==========
+# ========= ENV =========
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
 MONGO_URI = os.getenv("MONGODB_URI")
 OWNER_ID = int(os.getenv("OWNER_ID", "0"))
+SUPPORT_CHANNEL = os.getenv("SUPPORT_CHANNEL")
+LOG_CHANNEL_ID = int(os.getenv("LOG_CHANNEL_ID", "0"))
 
-if not all([TOKEN, OPENROUTER_KEY, MONGO_URI, OWNER_ID]):
+if not all([TOKEN, OPENROUTER_KEY, MONGO_URI, OWNER_ID, SUPPORT_CHANNEL, LOG_CHANNEL_ID]):
     raise RuntimeError("Missing ENV variables")
 
 MODEL = "deepseek/deepseek-chat"
 
-# ========== Mongo ==========
+# ========= MongoDB =========
 client = MongoClient(MONGO_URI)
 db = client["telegram_bot"]
-users_col = db["users"]
+users = db["users"]
 
-# ========== Language ==========
-LANG_MAP = {
+# ========= Languages =========
+LANG = {
     "en": "Reply only in English.",
     "hi": "केवल हिंदी में उत्तर दें।",
-    "zh": "请只用中文回答。",
-    "es": "Responde solo en español."
+    "es": "Responde solo en español.",
+    "fr": "Répondez uniquement en français."
 }
 
-# ========== OpenRouter ==========
+LANG_BTN = {
+    "en": "🇬🇧 English",
+    "hi": "🇮🇳 Hindi",
+    "es": "🇪🇸 Spanish",
+    "fr": "🇫🇷 French"
+}
+
+# ========= OpenRouter =========
 def ask_ai(messages):
     r = requests.post(
         "https://openrouter.ai/api/v1/chat/completions",
@@ -46,80 +55,109 @@ def ask_ai(messages):
     )
     return r.json()["choices"][0]["message"]["content"]
 
-# ========== Chat ==========
+# ========= START =========
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    kb = [
+        [InlineKeyboardButton("🌍 Language", callback_data="language")],
+        [InlineKeyboardButton("📢 Support Channel", url=SUPPORT_CHANNEL)]
+    ]
+    await update.message.reply_photo(
+        photo="https://i.imgur.com/4M34hi2.jpg",
+        caption="🤖 AI Bot Online\nChoose options below 👇",
+        reply_markup=InlineKeyboardMarkup(kb)
+    )
+
+# ========= BUTTONS =========
+async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+
+    if q.data == "language":
+        btns = [[InlineKeyboardButton(v, callback_data=f"lang_{k}")]
+                for k, v in LANG_BTN.items()]
+        await q.message.reply_text(
+            "🌍 Select Language:",
+            reply_markup=InlineKeyboardMarkup(btns)
+        )
+
+    elif q.data.startswith("lang_"):
+        code = q.data.split("_")[1]
+        users.update_one(
+            {"chat_id": q.message.chat_id},
+            {"$set": {"lang": code, "messages": []}},
+            upsert=True
+        )
+        await q.message.reply_text(f"✅ Language set to {LANG_BTN[code]}")
+
+# ========= COMMANDS =========
+async def language(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await start(update, context)
+
+async def get_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = f"👤 Your ID: `{update.effective_user.id}`"
+    if update.effective_chat.type != "private":
+        text += f"\n👥 Group ID: `{update.effective_chat.id}`"
+    await update.message.reply_text(text, parse_mode="Markdown")
+
+async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != OWNER_ID:
+        return
+    if not update.message.reply_to_message:
+        await update.message.reply_text("Reply to user to ban.")
+        return
+    await update.effective_chat.ban_member(
+        update.message.reply_to_message.from_user.id
+    )
+    await update.message.reply_text("🚫 User banned.")
+
+async def image(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    prompt = " ".join(context.args)
+    if not prompt:
+        await update.message.reply_text("Use: /image <prompt>")
+        return
+    img = f"https://image.pollinations.ai/prompt/{prompt}"
+    await update.message.reply_photo(photo=img, caption=prompt)
+
+# ========= CHAT =========
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = update.message
-    chat_id = msg.chat_id
-    text = msg.text
+    chat_id = update.message.chat_id
+    text = update.message.text
 
-    # Group logic: only reply if mentioned or /ai
-    if msg.chat.type in ["group", "supergroup"]:
-        if not ("/ai" in text.lower() or context.bot.username in text):
-            return
-        text = text.replace("/ai", "").strip()
-
-    doc = users_col.find_one({"chat_id": chat_id}) or {}
+    doc = users.find_one({"chat_id": chat_id}) or {}
     lang = doc.get("lang", "en")
-    history = doc.get("messages", [])
+    msgs = doc.get("messages", [])
 
-    if not history:
-        history.append({"role": "system", "content": LANG_MAP[lang]})
+    if not msgs:
+        msgs.append({"role": "system", "content": LANG[lang]})
 
-    history.append({"role": "user", "content": text})
-    reply = ask_ai(history)
-    history.append({"role": "assistant", "content": reply})
+    msgs.append({"role": "user", "content": text})
+    reply = ask_ai(msgs)
+    msgs.append({"role": "assistant", "content": reply})
 
-    users_col.update_one(
+    users.update_one(
         {"chat_id": chat_id},
-        {"$set": {
-            "chat_id": chat_id,
-            "lang": lang,
-            "messages": history[-20:],
-            "type": msg.chat.type
-        }},
+        {"$set": {"chat_id": chat_id, "lang": lang, "messages": msgs[-20:]}},
         upsert=True
     )
 
-    await msg.reply_text(reply)
-
-# ========== Admin ==========
-async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != OWNER_ID:
-        return
-    total = users_col.count_documents({})
-    groups = users_col.count_documents({"type": {"$ne": "private"}})
-    await update.message.reply_text(
-        f"📊 Stats\nUsers: {total}\nGroups: {groups}"
+    # LOG
+    await context.bot.send_message(
+        LOG_CHANNEL_ID,
+        f"📝 Chat ID: {chat_id}\n👤 User: {update.effective_user.id}\n💬 {text}"
     )
 
-async def reset_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != OWNER_ID:
-        return
-    users_col.update_many({}, {"$set": {"messages": []}})
-    await update.message.reply_text("♻️ All memory cleared")
+    await update.message.reply_text(reply)
 
-# ========== Dashboard ==========
-app_web = Flask(__name__)
+# ========= RUN =========
+app = ApplicationBuilder().token(TOKEN).build()
 
-@app_web.route("/")
-def dashboard():
-    return jsonify({
-        "users": users_col.count_documents({}),
-        "languages": list(LANG_MAP.keys()),
-        "status": "running"
-    })
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("language", language))
+app.add_handler(CommandHandler("id", get_id))
+app.add_handler(CommandHandler("ban", ban))
+app.add_handler(CommandHandler("image", image))
+app.add_handler(CallbackQueryHandler(buttons))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 
-def run_dashboard():
-    app_web.run(host="0.0.0.0", port=int(os.getenv("PORT", 8080)))
-
-# ========== Run ==========
-def main():
-    application = ApplicationBuilder().token(TOKEN).build()
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
-    application.add_handler(CommandHandler("stats", stats))
-    application.add_handler(CommandHandler("resetall", reset_all))
-
-    threading.Thread(target=run_dashboard).start()
-    application.run_polling()
-
-main()
+print("🤖 Bot running with FULL features")
+app.run_polling()
