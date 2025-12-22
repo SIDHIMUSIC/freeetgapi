@@ -41,7 +41,25 @@ async def is_admin(update, context):
         update.effective_user.id
     )
     return m.status in ("administrator", "creator")
-    async def send_log(context, text):
+    # ================= HELPERS =================
+def is_owner(uid): 
+    return uid == OWNER_ID
+
+def is_bot_banned(uid): 
+    return bot_bans.find_one({"user_id": uid}) is not None
+
+async def is_admin(update, context):
+    if update.effective_chat.type == "private":
+        return False
+    m = await context.bot.get_chat_member(
+        update.effective_chat.id,
+        update.effective_user.id
+    )
+    return m.status in ("administrator", "creator")
+
+
+# ================= LOG HELPER =================
+async def send_log(context, text):
     if LOG_GROUP_ID == 0:
         return
     try:
@@ -50,7 +68,7 @@ async def is_admin(update, context):
             text=text,
             parse_mode="Markdown"
         )
-    except:
+    except Exception:
         pass
 
 # ================= AI =================
