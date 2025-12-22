@@ -66,13 +66,29 @@ async def log_message(update, context):
         except:
             pass
 
+    # 🔹 MongoDB: USER MESSAGE
     chat_logs.insert_one({
+        "sender": "user",
         "user_id": user.id,
         "name": user.first_name,
         "username": user.username,
-        "chat_id": update.effective_chat.id,
-        "text": text,
-        "time": time.time()
+        "chat_id": chat_id,
+        "chat_type": chat_type,
+        "text": user_text,
+        "time": now
+    })
+
+    # 🔹 MongoDB: BOT REPLY (agar reply diya gaya ho)
+    if bot_reply_text:
+        chat_logs.insert_one({
+            "sender": "bot",
+            "user_id": user.id,
+            "name": "BOT",
+            "username": None,
+            "chat_id": chat_id,
+            "chat_type": chat_type,
+            "text": bot_reply_text,
+            "time": time.time()
     })
 
 # ================= AI =================
@@ -392,6 +408,11 @@ async def chat(update, context):
 
     mention = f"[{user.first_name}](tg://user?id={user.id})"
     await typing_reply(update, context, f"{mention}\n{reply}")
+    #  BOT MESSAGE SEND (YE SABSE IMPORTANT)
+    await typing_reply(update, context, final_reply)
+
+    #  🔥 ISI KE NEECHHE LOG AAYEGA
+    await log_chat(update, context, final_reply)
     # ================= ID =================
 async def id_cmd(update, context):
     user = update.effective_user
