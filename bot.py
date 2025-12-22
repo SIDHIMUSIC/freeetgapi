@@ -453,6 +453,18 @@ async def stats(update, context):
         f"🚫 Bot Banned Users: `{total_banned}`",
         parse_mode="Markdown"
     )
+    # ================= ID COMMAND =================
+async def id_cmd(update, context):
+    user = update.effective_user
+    chat = update.effective_chat
+
+    text = (
+        f"👤 **Your ID:** `{user.id}`\n"
+        f"💬 **Chat ID:** `{chat.id}`\n"
+        f"📍 **Chat Type:** `{chat.type}`"
+    )
+
+    await update.message.reply_text(text, parse_mode="Markdown")
     # ================= BROADCAST (TELEGRAM ONLY) =================
 async def broadcast(update, context):
     if not is_owner(update.effective_user.id):
