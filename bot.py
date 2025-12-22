@@ -104,12 +104,12 @@ START_IMAGES = [
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     kb = InlineKeyboardMarkup([
         [InlineKeyboardButton("🌍 Language", callback_data="open_lang")],
-        [InlineKeyboardButton("ℹ️ Help", callback_data="help")],
+        [InlineKeyboardButton("🤗 Help", callback_data="help")],
         [InlineKeyboardButton("📢 Support", url=SUPPORT_CHANNEL)]
     ])
     await update.message.reply_photo(
         photo=random.choice(START_IMAGES),
-        caption=f"👋 Hi {update.effective_user.first_name}\n🤖 Smart AI Bot Ready",
+        caption=f"👋🫶 Hi {update.effective_user.first_name}\n🤖 Smart AI Bot Ready",
         reply_markup=kb
     )
 
@@ -132,7 +132,7 @@ Admin:
 /ban  
 /unban  
 
-Owner:
+👑Owner:
 /botban  
 /botunban  
 
@@ -140,6 +140,16 @@ Owner:
 ✔ Typing ON  
 ✔ Logs ON  
 ✔ Memory ON
+/botban <id>
+/botunban <id>
+
+/addbadword <word>
+/removebadword <word>
+
+Auto:
+• Joke
+• Shayari
+• 18+ / Gaali filter
 """
 
 async def help_cmd(update, context):
@@ -171,10 +181,34 @@ async def lang_cb(update, context):
 # ================= IMAGE =================
 async def image_cmd(update, context):
     if not context.args:
-        return await update.message.reply_text("/image prompt do")
+        return await update.message.reply_text(
+            "❌ Use like:\n/image cyberpunk indian boy 4k"
+        )
+
     prompt = " ".join(context.args)
-    url = f"https://image.pollinations.ai/prompt/{prompt.replace(' ', '%20')}"
-    await update.message.reply_photo(url, caption=f"🖼 {prompt}")
+
+    # typing / uploading effect
+    await context.bot.send_chat_action(
+        chat_id=update.effective_chat.id,
+        action="upload_photo"
+    )
+
+    image_url = (
+        "https://image.pollinations.ai/prompt/"
+        + requests.utils.quote(prompt)
+        + "?width=1024&height=1024&seed=42&model=flux"
+    )
+
+    try:
+        await update.message.reply_photo(
+            photo=image_url,
+            caption=f"🖼 Prompt:\n{prompt}"
+        )
+    except Exception:
+        await update.message.reply_text(
+            "❌ Image generate nahi ho pa rahi.\n"
+            "Simple prompt try karo."
+        )
 
 # ================= AUTO MOD =================
 BAD_WORDS = ["spamword1", "spamword2"]
@@ -356,6 +390,16 @@ async def chat(update, context):
 
     mention = f"[{user.first_name}](tg://user?id={user.id})"
     await typing_reply(update, context, f"{mention}\n{reply}")
+    # ================= ID =================
+async def id_cmd(update, context):
+    user = update.effective_user
+    chat = update.effective_chat
+
+    await update.message.reply_text(
+        f"🆔 User ID: `{user.id}`\n"
+        f"💬 Chat ID: `{chat.id}`",
+        parse_mode="Markdown"
+    )
 
 # ================= APP =================
 app = ApplicationBuilder().token(TOKEN).build()
@@ -372,6 +416,7 @@ app.add_handler(CallbackQueryHandler(lang_cb))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 app.add_handler(CommandHandler("addbadword", addbadword))
 app.add_handler(CommandHandler("removebadword", removebadword))
+app.add_handler(CommandHandler("id", id_cmd))
 
 print("🤖 BOT RUNNING – MERGED FULL SYSTEM")
 app.run_polling(drop_pending_updates=True)
