@@ -26,6 +26,7 @@ bot_bans = db.bot_bans
 ban_logs = db.ban_logs
 spam = db.spam
 chat_logs = db.chat_logs
+badwords = db.badwords
 
 # ================= HELPERS =================
 def is_owner(uid):
@@ -176,21 +177,70 @@ async def image_cmd(update, context):
 
 # ================= AUTO MOD =================
 BAD_WORDS = ["spamword1", "spamword2"]
+BAD_WORDS.extend([
+    # English 18+
+    "fuck", "fucker", "sex", "porn", "nude", "xxx",
+    "boobs", "asshole", "bitch", "slut", "dick", "pussy",
+    "blowjob", "handjob", "anal", "rape",
+
+    # Hindi gaali
+    "chutiya", "madarchod", "bhosdike", "lund", "gaand", "randi",
+    "bhenchod", "behenchod", "mc", "bc", "saala", "harami",
+    "chod", "chodu", "gandu", "kamina"
+])
+def get_bad_words():
+    words = set(BAD_WORDS)
+    for w in badwords.find():
+        words.add(w["word"])
+    return list(words)
 
 async def auto_mod(update, context):
+    if not update.message or not update.message.text:
+        return
+
     text = update.message.text.lower()
     uid = update.effective_user.id
 
-    if any(w in text for w in BAD_WORDS):
-        await update.message.delete()
-        return
+    for word in get_bad_words():
+        if re.search(rf"\b{re.escape(word)}\b", text):
+            try:
+                await update.message.delete()
+                await update.message.reply_text(
+                    "🚫 Gali / 18+ content allowed nahi hai"
+                )
+            except:
+                pass
+            return
 
     last = spam.find_one({"user": uid})
-    if last and time.time() - last["time"] < 3:
+    now = time.time()
+    if last and now - last.get("time", 0) < 3:
         await update.message.reply_text("⚠️ Spam mat karo")
+        return
 
-    spam.update_one({"user": uid}, {"$set": {"time": time.time()}}, upsert=True)
+    spam.update_one({"user": uid}, {"$set": {"time": now}}, upsert=True
+# ================= BADWORD COMMANDS =================
+async def addbadword(update, context):
+    if not is_owner(update.effective_user.id):
+        return
+    if not context.args:
+        return await update.message.reply_text("/addbadword <word>")
+    word = context.args[0].lower()
+    if badwords.find_one({"word": word}):
+        return await update.message.reply_text("⚠️ Word already added")
+    badwords.insert_one({"word": word, "time": time.time()})
+    await update.message.reply_text(f"✅ Added badword: `{word}`", parse_mode="Markdown")
 
+async def removebadword(update, context):
+    if not is_owner(update.effective_user.id):
+        return
+    if not context.args:
+        return await update.message.reply_text("/removebadword <word>")
+    word = context.args[0].lower()
+    res = badwords.delete_one({"word": word})
+    if res.deleted_count == 0:
+        return await update.message.reply_text("⚠️ Word not found")
+    await update.message.reply_text(f"✅ Removed badword: `{word}`", parse_mode="Markdown")
 # ================= BAN SYSTEM =================
 
 # 🔹 OWNER – GLOBAL BOT BAN
@@ -310,6 +360,8 @@ app.add_handler(CommandHandler("botban", botban))
 app.add_handler(CommandHandler("botunban", botunban))
 app.add_handler(CallbackQueryHandler(lang_cb))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
+app.add_handler(CommandHandler("addbadword", addbadword))
+app.add_handler(CommandHandler("removebadword", removebadword))
 
 print("🤖 BOT RUNNING – MERGED FULL SYSTEM")
 app.run_polling(drop_pending_updates=True)
