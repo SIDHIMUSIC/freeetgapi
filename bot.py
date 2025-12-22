@@ -92,30 +92,76 @@ async def id_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ---------- /joke ----------
 async def joke_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    jokes = [
-        "Why don’t programmers like nature? Too many bugs 😄",
-        "Why Python is slow? Because it takes time to think 🐍"
+    await update.message.reply_text("😂 Joke soch raha hoon...")
+
+    messages = [
+        {"role": "system", "content": "Tell a short, clean, funny joke."},
+        {"role": "user", "content": "Tell me a joke"}
     ]
-    await update.message.reply_text(random.choice(jokes))
+
+    joke = safe_ai(messages)
+
+    await update.message.reply_text(
+        joke,
+        reply_to_message_id=update.message.message_id
+    )
 
 # ---------- /shayri ----------
 async def shayri_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    sh = [
-        "हर पल तुम्हें सोचते हैं,\nयही हमारी आदत है ❤️",
-        "खामोशी भी कुछ कहती है,\nबस सुनने वाला चाहिए ✨"
+    await update.message.reply_text("✍️ Shayari likh raha hoon...")
+
+    messages = [
+        {
+            "role": "system",
+            "content": "Write a beautiful, short Hindi shayari. Keep it emotional and poetic."
+        },
+        {"role": "user", "content": "Ek acchi si shayari likho"}
     ]
-    await update.message.reply_text(random.choice(sh))
+
+    shayari = safe_ai(messages)
+
+    await update.message.reply_text(
+        shayari,
+        reply_to_message_id=update.message.message_id
+    )
 
 # ---------- /image ----------
 async def image_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     prompt = " ".join(context.args)
     if not prompt:
-        await update.message.reply_text("Use: /image <prompt>")
+        await update.message.reply_text(
+            "Use: /image <description>\nExample:\n/image headphones pehni sundar ladki ka DP"
+        )
         return
-    await update.message.reply_text(
-        f"🖼 Image generation prompt received:\n`{prompt}`\n(Integrate image API here)",
-        parse_mode="Markdown"
-    )
+
+    await update.message.reply_text("🎨 Image generate ho rahi hai, thoda wait karo...")
+
+    try:
+        r = requests.post(
+            "https://openrouter.ai/api/v1/images/generations",
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "stabilityai/sdxl",
+                "prompt": prompt,
+                "size": "1024x1024"
+            },
+            timeout=120
+        )
+        r.raise_for_status()
+        img_url = r.json()["data"][0]["url"]
+
+        await update.message.reply_photo(
+            photo=img_url,
+            caption=f"🖼 Generated Image\n\nPrompt:\n{prompt}"
+        )
+
+    except Exception as e:
+        await update.message.reply_text(
+            "❌ Image generate nahi ho paayi.\nBaad me try karo."
+        )
 
 # ---------- GROUP BAN ----------
 async def ban_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
