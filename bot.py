@@ -228,11 +228,7 @@ async def auto_mod(update, context):
         await update.message.reply_text("⚠️ Spam mat karo")
         return
 
-    spam.update_one(
-        {"user": uid},
-        {"$set": {"time": now}},
-        upsert=True
-    )
+    spam.update_one({"user": uid}, {"$set": {"time": now}}, upsert=True)
 # ================= BADWORD COMMANDS =================
 async def addbadword(update, context):
     if not is_owner(update.effective_user.id):
