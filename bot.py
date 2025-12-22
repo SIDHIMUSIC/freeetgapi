@@ -1,3 +1,4 @@
+import requests
 import re 
 import os, requests, random, asyncio, time
 from pymongo import MongoClient
