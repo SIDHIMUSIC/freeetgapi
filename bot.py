@@ -1,3 +1,4 @@
+LOG_GROUP_ID = int(os.getenv("LOG_GROUP_ID", "0"))
 import os, requests, random, asyncio, time
 from pymongo import MongoClient
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -11,7 +12,7 @@ TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
 MONGO_URI = os.getenv("MONGODB_URI")
 OWNER_ID = int(os.getenv("OWNER_ID", "0"))
-SUPPORT_CHANNEL = "https://t.me/YOUR_SUPPORT_CHANNEL"
+SUPPORT_CHANNEL = "https://t.me/TG_BIO_STYLE"
 
 if not all([TOKEN, OPENROUTER_KEY, MONGO_URI, OWNER_ID]):
     raise RuntimeError("Missing ENV variables")
@@ -40,6 +41,17 @@ async def is_admin(update, context):
         update.effective_user.id
     )
     return m.status in ("administrator", "creator")
+    async def send_log(context, text):
+    if LOG_GROUP_ID == 0:
+        return
+    try:
+        await context.bot.send_message(
+            chat_id=LOG_GROUP_ID,
+            text=text,
+            parse_mode="Markdown"
+        )
+    except:
+        pass
 
 # ================= AI =================
 def safe_ai(messages):
