@@ -44,16 +44,8 @@ async def is_admin(update, context):
 
 # ================= Language =================
 LANG_PROMPTS = {
-    "en": (
-        "Reply only in English. "
-        "Write like a human, soft handwritten style. "
-        "Use emojis ONLY when they naturally fit the emotion."
-    ),
-    "hi": (
-        "केवल हिंदी में उत्तर दें। "
-        "इंसान की तरह नरम लिखावट रखें। "
-        "जहाँ भावनात्मक रूप से सही लगे वहीं इमोजी का प्रयोग करें।"
-    )
+    "en": "Reply only in English. Write naturally like a human. Use emoji only if it fits.",
+    "hi": "केवल हिंदी में उत्तर दें। इंसान की तरह स्वाभाविक लिखें, ज़रूरत हो तभी इमोजी।"
 }
 
 LANG_BUTTONS = [
@@ -77,85 +69,93 @@ def safe_ai(messages):
     except Exception:
         return "🙂 अभी थोड़ी दिक्कत आ रही है, थोड़ी देर बाद फिर कोशिश करें।"
 
-# ================= TYPEWRITER EFFECT =================
-async def typewriter_reply(update, context, text, delay=0.6):
+# ================= SINGLE TYPING REPLY =================
+async def typing_single_reply(update, context, text, delay=0.5):
     chat_id = update.effective_chat.id
-    text = text.strip()
-    parts = []
-
-    while len(text) > 0:
-        if len(text) > 80:
-            cut = text[:80].rfind(" ")
-            cut = cut if cut != -1 else 80
-        else:
-            cut = len(text)
-        parts.append(text[:cut])
-        text = text[cut:].lstrip()
-
-    for part in parts:
-        await context.bot.send_chat_action(chat_id, "typing")
-        await asyncio.sleep(delay)
-        await update.message.reply_text(part)
+    await context.bot.send_chat_action(chat_id, "typing")
+    await asyncio.sleep(delay)
+    await update.message.reply_text(
+        text,
+        reply_to_message_id=update.message.message_id,
+        parse_mode="Markdown"
+    )
 
 # ================= BOT =================
 app = ApplicationBuilder().token(TOKEN).build()
 
+# ---------- /start ----------
+START_IMAGES = [
+    "https://graph.org/file/705cda02e63f4cb0bdb90-ce4d0ddd3a8cf38b5a.jpg",
+    "https://graph.org/file/8c5e8ea95b69e682aed19-22090eb6bb17ce7a54.jpg",
+    "https://graph.org/file/556615482003de63f32be-58c192c7e65004f9d4.jpg",
+    "https://graph.org/file/bb129887cac5752f0f0f5-70aec0f85376516f16.jpg"
+]
+
+async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    img = random.choice(START_IMAGES)
+
+    kb = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🌍 Language", callback_data="open_language")],
+        [InlineKeyboardButton("ℹ️ Help", url="https://t.me/")],
+    ])
+
+    await update.message.reply_photo(
+        photo=img,
+        caption=(
+            f"👋 Hi {update.effective_user.first_name}!\n\n"
+            "🤖 Main ek smart AI bot hoon.\n"
+            "💬 Mujhse baat karo, joke/shayari lo,\n"
+            "🖼️ image banao aur kaafi kuch.\n\n"
+            "👇 Shuru karne ke liye niche button dabao"
+        ),
+        reply_markup=kb
+    )
+
 # ---------- /language ----------
 async def language_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     kb = [[InlineKeyboardButton(t, callback_data=d) for t, d in row] for row in LANG_BUTTONS]
-    await update.message.reply_text(
-        "🌍 Choose language",
-        reply_markup=InlineKeyboardMarkup(kb)
-    )
+    await update.message.reply_text("🌍 Choose language", reply_markup=InlineKeyboardMarkup(kb))
 
 async def language_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
+
+    if q.data == "open_language":
+        await language_cmd(update, context)
+        return
+
     lang = q.data.split("_")[1]
     users.update_one({"chat_id": q.message.chat_id}, {"$set": {"lang": lang}}, upsert=True)
     await q.message.reply_text(f"✅ Language set to {lang.upper()}")
 
 # ---------- /id ----------
 async def id_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        f"🆔 Your ID: `{update.effective_user.id}`",
-        parse_mode="Markdown"
-    )
+    await update.message.reply_text(f"🆔 Your ID: `{update.effective_user.id}`", parse_mode="Markdown")
 
 # ---------- /joke ----------
 async def joke_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    messages = [
-        {"role": "system", "content": "Tell a short, clean, funny joke. Use emoji only if it fits."},
+    reply = safe_ai([
+        {"role": "system", "content": "Tell a short, clean, funny joke. Emoji only if needed."},
         {"role": "user", "content": "Tell me a joke"}
-    ]
-    reply = safe_ai(messages)
-    await typewriter_reply(update, context, reply)
+    ])
+    await typing_single_reply(update, context, reply)
 
 # ---------- /shayri ----------
 async def shayri_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    messages = [
-        {
-            "role": "system",
-            "content": (
-                "Write a beautiful short Hindi shayari. "
-                "Emotional, poetic. Use emoji only if it fits naturally."
-            )
-        },
-        {"role": "user", "content": "Ek acchi si shayari likho"}
-    ]
-    reply = safe_ai(messages)
-    await typewriter_reply(update, context, reply)
+    reply = safe_ai([
+        {"role": "system", "content": "Write a short emotional Hindi shayari. Emoji only if it fits."},
+        {"role": "user", "content": "Ek shayari likho"}
+    ])
+    await typing_single_reply(update, context, reply)
 
 # ---------- /image ----------
 async def image_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     prompt = " ".join(context.args)
     if not prompt:
-        await update.message.reply_text(
-            "Use: /image <description>\nExample:\n/image headphones pehni sundar ladki ka DP"
-        )
+        await update.message.reply_text("Use: /image <description>")
         return
 
-    await update.message.reply_text("🎨 Image generate ho rahi hai, thoda wait karo...")
+    await update.message.reply_text("🎨 Image generate ho rahi hai...")
 
     try:
         r = requests.post(
@@ -171,34 +171,10 @@ async def image_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
             },
             timeout=120
         )
-        r.raise_for_status()
         img_url = r.json()["data"][0]["url"]
-
-        await update.message.reply_photo(
-            photo=img_url,
-            caption=f"🖼 Generated Image\n\nPrompt:\n{prompt}"
-        )
-    except Exception:
+        await update.message.reply_photo(photo=img_url)
+    except:
         await update.message.reply_text("❌ Image generate nahi ho paayi.")
-
-# ---------- GROUP BAN ----------
-async def ban_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not await is_admin(update, context):
-        return
-    chat = update.effective_chat
-    target = None
-
-    if update.message.reply_to_message:
-        target = update.message.reply_to_message.from_user.id
-    elif context.args:
-        try:
-            target = int(context.args[0])
-        except:
-            return
-
-    if target:
-        await context.bot.ban_chat_member(chat.id, target)
-        await update.message.reply_text("🚫 User banned")
 
 # ---------- CHAT ----------
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -212,10 +188,7 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = doc.get("lang", "en")
 
     if not msgs:
-        msgs.append({
-            "role": "system",
-            "content": LANG_PROMPTS.get(lang, LANG_PROMPTS["en"])
-        })
+        msgs.append({"role": "system", "content": LANG_PROMPTS.get(lang)})
 
     msgs.append({"role": "user", "content": update.message.text})
     reply = safe_ai(msgs)
@@ -233,30 +206,19 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     mention = f"[{user.first_name}](tg://user?id={user.id})"
-    await typewriter_reply(update, context, f"{mention}\n{reply}")
-
-# ---------- OWNER PANEL ----------
-async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not is_owner(update.effective_user.id):
-        return
-    await update.message.reply_text(
-        f"📊 DASHBOARD\n"
-        f"👤 Users: {users.count_documents({})}\n"
-        f"🚫 Blocked: {blocked.count_documents({'blocked': True})}"
-    )
+    await typing_single_reply(update, context, f"{mention}\n{reply}")
 
 # ================= HANDLERS =================
+app.add_handler(CommandHandler("start", start_cmd))
 app.add_handler(CommandHandler("language", language_cmd))
 app.add_handler(CallbackQueryHandler(language_buttons))
 app.add_handler(CommandHandler("id", id_cmd))
 app.add_handler(CommandHandler("joke", joke_cmd))
 app.add_handler(CommandHandler("shayri", shayri_cmd))
 app.add_handler(CommandHandler("image", image_cmd))
-app.add_handler(CommandHandler("ban", ban_cmd))
-app.add_handler(CommandHandler("panel", panel))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 
 # ================= RUN =================
 if __name__ == "__main__":
-    print("🤖 Bot running in POLLING mode (FINAL HUMAN STYLE)")
+    print("🤖 Bot running in POLLING mode (FINAL CLEAN)")
     app.run_polling(drop_pending_updates=True)
