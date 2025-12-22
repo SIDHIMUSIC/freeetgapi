@@ -1,3 +1,4 @@
+import re 
 import os, requests, random, asyncio, time
 from pymongo import MongoClient
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -177,6 +178,7 @@ async def image_cmd(update, context):
 
 # ================= AUTO MOD =================
 BAD_WORDS = ["spamword1", "spamword2"]
+
 BAD_WORDS.extend([
     # English 18+
     "fuck", "fucker", "sex", "porn", "nude", "xxx",
@@ -188,6 +190,7 @@ BAD_WORDS.extend([
     "bhenchod", "behenchod", "mc", "bc", "saala", "harami",
     "chod", "chodu", "gandu", "kamina"
 ])
+
 def get_bad_words():
     words = set(BAD_WORDS)
     for w in badwords.find():
@@ -198,9 +201,14 @@ async def auto_mod(update, context):
     if not update.message or not update.message.text:
         return
 
+    # 🔥 COMMANDS KO AUTO-MOD SE SKIP KARO
+    if update.message.text.startswith("/"):
+        return
+
     text = update.message.text.lower()
     uid = update.effective_user.id
 
+    # 🔹 GAALI / 18+ CHECK
     for word in get_bad_words():
         if re.search(rf"\b{re.escape(word)}\b", text):
             try:
@@ -212,13 +220,19 @@ async def auto_mod(update, context):
                 pass
             return
 
+    # 🔹 SPAM CHECK
     last = spam.find_one({"user": uid})
     now = time.time()
+
     if last and now - last.get("time", 0) < 3:
         await update.message.reply_text("⚠️ Spam mat karo")
         return
 
-    spam.update_one({"user": uid}, {"$set": {"time": now}}, upsert=True
+    spam.update_one(
+        {"user": uid},
+        {"$set": {"time": now}},
+        upsert=True
+    )
 # ================= BADWORD COMMANDS =================
 async def addbadword(update, context):
     if not is_owner(update.effective_user.id):
