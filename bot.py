@@ -192,33 +192,74 @@ async def auto_mod(update, context):
     spam.update_one({"user": uid}, {"$set": {"time": time.time()}}, upsert=True)
 
 # ================= BAN SYSTEM =================
+
+# 🔹 OWNER – GLOBAL BOT BAN
 async def botban(update, context):
     if not is_owner(update.effective_user.id):
         return
-    uid = int(context.args[0])
-    bot_bans.update_one({"user_id": uid}, {"$set": {"user_id": uid}}, upsert=True)
-    await update.message.reply_text("🚫 Global bot ban")
 
+    if not context.args or not context.args[0].isdigit():
+        return await update.message.reply_text(
+            "❌ Use: /botban <user_id>"
+        )
+
+    uid = int(context.args[0])
+    bot_bans.update_one(
+        {"user_id": uid},
+        {"$set": {"user_id": uid}},
+        upsert=True
+    )
+    await update.message.reply_text("🚫 User globally bot-banned")
+
+
+# 🔹 OWNER – GLOBAL BOT UNBAN
 async def botunban(update, context):
     if not is_owner(update.effective_user.id):
         return
+
+    if not context.args or not context.args[0].isdigit():
+        return await update.message.reply_text(
+            "❌ Use: /botunban <user_id>"
+        )
+
     uid = int(context.args[0])
     bot_bans.delete_one({"user_id": uid})
-    await update.message.reply_text("✅ Global unban")
+    await update.message.reply_text("✅ User globally unbanned")
 
+
+# 🔹 GROUP ADMIN – BAN
 async def ban(update, context):
     if not await is_admin(update, context):
         return
-    uid = update.message.reply_to_message.from_user.id
-    await context.bot.ban_chat_member(update.effective_chat.id, uid)
-    await update.message.reply_text("🚫 User banned")
 
+    uid = None
+    if update.message.reply_to_message:
+        uid = update.message.reply_to_message.from_user.id
+    elif context.args and context.args[0].isdigit():
+        uid = int(context.args[0])
+
+    if not uid:
+        return await update.message.reply_text(
+            "❌ Reply to a user or use: /ban <user_id>"
+        )
+
+    await context.bot.ban_chat_member(update.effective_chat.id, uid)
+    await update.message.reply_text("🚫 User banned from group")
+
+
+# 🔹 GROUP ADMIN – UNBAN
 async def unban(update, context):
     if not await is_admin(update, context):
         return
+
+    if not context.args or not context.args[0].isdigit():
+        return await update.message.reply_text(
+            "❌ Use: /unban <user_id>"
+        )
+
     uid = int(context.args[0])
     await context.bot.unban_chat_member(update.effective_chat.id, uid)
-    await update.message.reply_text("✅ User unbanned")
+    await update.message.reply_text("✅ User unbanned from group")
 
 # ================= CHAT =================
 async def chat(update, context):
