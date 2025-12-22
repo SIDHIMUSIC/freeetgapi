@@ -1,6 +1,5 @@
 import os
 import requests
-from flask import Flask, request
 from pymongo import MongoClient
 from telegram import (
     Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -15,7 +14,6 @@ TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
 MONGO_URI = os.getenv("MONGODB_URI")
 OWNER_ID = int(os.getenv("OWNER_ID", "0"))
-PORT = int(os.getenv("PORT", 8080))
 
 if not all([TOKEN, OPENROUTER_KEY, MONGO_URI, OWNER_ID]):
     raise RuntimeError("Missing ENV variables")
@@ -35,7 +33,7 @@ def is_owner(uid):
 def is_blocked(uid):
     return blocked.find_one({"user_id": uid, "blocked": True}) is not None
 
-# ================= Languages =================
+# ================= Languages (MANUAL) =================
 LANG_PROMPTS = {
     "en": "Reply only in English.",
     "hi": "केवल हिंदी में उत्तर दें।",
@@ -65,10 +63,10 @@ def ask_ai(messages):
     r.raise_for_status()
     return r.json()["choices"][0]["message"]["content"]
 
-# ================= Telegram App =================
-tg_app = ApplicationBuilder().token(TOKEN).build()
+# ================= BOT =================
+app = ApplicationBuilder().token(TOKEN).build()
 
-# ================= /language =================
+# ---------- /language ----------
 async def language_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton(text, callback_data=data) for text, data in row]
@@ -83,10 +81,12 @@ async def language_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def language_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
+
     if not q.data.startswith("lang_"):
         return
 
     lang_code = q.data.split("_")[1]
+
     users.update_one(
         {"chat_id": q.message.chat_id},
         {"$set": {"lang": lang_code, "messages": []}},
@@ -98,12 +98,12 @@ async def language_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode="Markdown"
     )
 
-# ================= Chat =================
+# ---------- CHAT ----------
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     chat_id = update.effective_chat.id
 
-    # 🚫 Blocked users ignored
+    # 🚫 blocked users ignored
     if is_blocked(user.id):
         return
 
@@ -113,7 +113,7 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msgs = doc.get("messages", [])
     lang = doc.get("lang", "en")
 
-    # 🧠 system prompt with memory
+    # system prompt (memory start)
     if not msgs:
         msgs.append({
             "role": "system",
@@ -127,7 +127,7 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply = ask_ai(msgs)
     msgs.append({"role": "assistant", "content": reply})
 
-    # 💾 Save everything
+    # save memory
     users.update_one(
         {"chat_id": chat_id},
         {"$set": {
@@ -141,7 +141,7 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         upsert=True
     )
 
-    # 👤 TAG user + reply under same message
+    # 👤 TAG + reply-to
     mention = f"[{user.first_name}](tg://user?id={user.id})"
     await update.message.reply_text(
         f"{mention}\n{reply}",
@@ -149,7 +149,7 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_to_message_id=update.message.message_id
     )
 
-# ================= OWNER PANEL =================
+# ---------- OWNER PANEL ----------
 async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_owner(update.effective_user.id):
         return
@@ -160,21 +160,86 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode="Markdown"
     )
 
+# ---------- BLOCK / UNBLOCK ----------
+async def block_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_owner(update.effective_user.id):
+        return
+
+    target_id = None
+    username = None
+
+    if update.message.reply_to_message:
+        u = update.message.reply_to_message.from_user
+        target_id = u.id
+        username = u.username
+    elif context.args:
+        arg = context.args[0]
+        if arg.startswith("@"):
+            username = arg.lstrip("@")
+            doc = users.find_one({"username": username})
+            if doc:
+                target_id = doc["user_id"]
+        else:
+            try:
+                target_id = int(arg)
+            except:
+                pass
+
+    if not target_id:
+        await update.message.reply_text("Use: /block <user_id> or /block @username or reply")
+        return
+
+    blocked.update_one(
+        {"user_id": target_id},
+        {"$set": {"user_id": target_id, "username": username, "blocked": True}},
+        upsert=True
+    )
+
+    await update.message.reply_text(
+        f"🚫 User blocked: `{target_id}`",
+        parse_mode="Markdown"
+    )
+
+async def unblock_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_owner(update.effective_user.id):
+        return
+    if not context.args:
+        await update.message.reply_text("Use: /unblock <user_id>")
+        return
+    try:
+        uid = int(context.args[0])
+    except:
+        await update.message.reply_text("Invalid user ID")
+        return
+
+    blocked.delete_one({"user_id": uid})
+    await update.message.reply_text(
+        f"✅ User unblocked: `{uid}`",
+        parse_mode="Markdown"
+    )
+
+async def blocked_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_owner(update.effective_user.id):
+        return
+    data = list(blocked.find({"blocked": True}))
+    if not data:
+        await update.message.reply_text("No blocked users.")
+        return
+    text = "🚫 *Blocked Users:*\n"
+    for u in data:
+        text += f"- @{u.get('username')} ({u['user_id']})\n"
+    await update.message.reply_text(text, parse_mode="Markdown")
+
 # ================= HANDLERS =================
-tg_app.add_handler(CommandHandler("language", language_cmd))
-tg_app.add_handler(CallbackQueryHandler(language_buttons))
-tg_app.add_handler(CommandHandler("panel", panel))
-tg_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
+app.add_handler(CommandHandler("language", language_cmd))
+app.add_handler(CallbackQueryHandler(language_buttons))
+app.add_handler(CommandHandler("panel", panel))
+app.add_handler(CommandHandler("block", block_cmd))
+app.add_handler(CommandHandler("unblock", unblock_cmd))
+app.add_handler(CommandHandler("blocked", blocked_list))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 
-# ================= WEBHOOK =================
-web = Flask(__name__)
-
-@web.route("/webhook", methods=["POST"])
-async def telegram_webhook():
-    update = Update.de_json(request.get_json(force=True), tg_app.bot)
-    await tg_app.process_update(update)
-    return "OK"
-
+# ================= RUN =================
 if __name__ == "__main__":
-    print("🚀 Webhook bot running (TAG + MEMORY enabled)")
-    web.run(host="0.0.0.0", port=PORT)
+    print("🤖 Bot running in POLLING mode (FINAL)")
+    app.run_polling(drop_pending_updates=True)
