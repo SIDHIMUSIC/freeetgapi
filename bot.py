@@ -48,47 +48,39 @@ async def is_admin(update, context):
 
 # ================= LOG EVERY MESSAGE =================
 async def log_message(update, context):
+    if not update.message or not update.message.text:
+        return
+
     user = update.effective_user
+    chat = update.effective_chat
     text = update.message.text
 
     log_text = (
         f"📩 NEW MESSAGE\n\n"
         f"👤 Name: {user.first_name}\n"
         f"🆔 User ID: {user.id}\n"
-        f"💬 Chat ID: {update.effective_chat.id}\n"
+        f"💬 Chat ID: {chat.id}\n"
+        f"📍 Chat Type: {chat.type}\n"
         f"🕒 Time: {time.strftime('%d-%m-%Y %H:%M:%S')}\n\n"
         f"📝 Message:\n{text}"
     )
 
+    # send to log group
     if LOG_GROUP_ID:
         try:
             await context.bot.send_message(LOG_GROUP_ID, log_text)
         except:
             pass
 
-    # 🔹 MongoDB: USER MESSAGE
+    # save to MongoDB
     chat_logs.insert_one({
-        "sender": "user",
         "user_id": user.id,
         "name": user.first_name,
         "username": user.username,
-        "chat_id": chat_id,
-        "chat_type": chat_type,
-        "text": user_text,
-        "time": now
-    })
-
-    # 🔹 MongoDB: BOT REPLY (agar reply diya gaya ho)
-    if bot_reply_text:
-        chat_logs.insert_one({
-            "sender": "bot",
-            "user_id": user.id,
-            "name": "BOT",
-            "username": None,
-            "chat_id": chat_id,
-            "chat_type": chat_type,
-            "text": bot_reply_text,
-            "time": time.time()
+        "chat_id": chat.id,
+        "chat_type": chat.type,
+        "text": text,
+        "time": time.time()
     })
 
 # ================= AI =================
@@ -375,15 +367,22 @@ async def unban(update, context):
 
 # ================= CHAT =================
 async def chat(update, context):
+    if not update.message or not update.message.text:
+        return
+
     user = update.effective_user
     text = update.message.text.lower()
 
     if is_bot_banned(user.id):
         return
 
+    # 🔥 STEP 1: LOG USER MESSAGE
     await log_message(update, context)
+
+    # 🔥 STEP 2: AUTO MOD
     await auto_mod(update, context)
 
+    # 🔥 STEP 3: SAVE USER
     users.update_one(
         {"user_id": user.id},
         {"$set": {
@@ -394,6 +393,7 @@ async def chat(update, context):
         upsert=True
     )
 
+    # 🔥 STEP 4: AI SYSTEM PROMPT
     if "joke" in text or "funny" in text or "hasi" in text:
         system = "Tell a short funny joke in Hinglish with emojis."
     elif "shayari" in text or "love" in text or "sad" in text:
@@ -401,29 +401,28 @@ async def chat(update, context):
     else:
         system = f"Chat naturally with user named {user.first_name}."
 
+    # 🔥 STEP 5: AI REPLY
     reply = safe_ai([
         {"role": "system", "content": system},
         {"role": "user", "content": update.message.text}
     ])
 
     mention = f"[{user.first_name}](tg://user?id={user.id})"
-    await typing_reply(update, context, f"{mention}\n{reply}")
-    #  BOT MESSAGE SEND (YE SABSE IMPORTANT)
+    final_reply = f"{mention}\n{reply}"
+
+    # 🔥 STEP 6: SEND BOT MESSAGE (ONLY ONCE)
     await typing_reply(update, context, final_reply)
 
-    #  🔥 ISI KE NEECHHE LOG AAYEGA
-    await log_chat(update, context, final_reply)
-    # ================= ID =================
-async def id_cmd(update, context):
-    user = update.effective_user
-    chat = update.effective_chat
-
-    await update.message.reply_text(
-        f"🆔 User ID: `{user.id}`\n"
-        f"💬 Chat ID: `{chat.id}`",
-        parse_mode="Markdown"
-    )
-from datetime import datetime, timedelta
+    # 🔥 STEP 7: LOG BOT REPLY (OPTIONAL)
+    chat_logs.insert_one({
+        "user_id": user.id,
+        "name": user.first_name,
+        "username": user.username,
+        "chat_id": update.effective_chat.id,
+        "chat_type": update.effective_chat.type,
+        "text": f"[BOT_REPLY]\n{reply}",
+        "time": time.time()
+    })
 
 # ================= STATS =================
 async def stats(update, context):
