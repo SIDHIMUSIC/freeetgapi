@@ -128,8 +128,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=kb
     )
 
-# ================= HELP =================
-# ================= HELP =================
+# ================= help =================
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 
 HELP_TEXT = (
@@ -192,15 +191,21 @@ async def help_cmd(update, context):
         ]
     )
 
-    # command + callback dono ke liye safe
-    msg = update.message if update.message else update.callback_query.message
-
-    await msg.edit_text(
-        HELP_TEXT,
-        parse_mode="HTML",
-        reply_markup=keyboard,
-        disable_web_page_preview=True
-    )
+    # ✅ SAFE: command vs callback
+    if update.message:  # /help command
+        await update.message.reply_text(
+            HELP_TEXT,
+            parse_mode="HTML",
+            reply_markup=keyboard,
+            disable_web_page_preview=True
+        )
+    else:  # back button
+        await update.callback_query.message.edit_text(
+            HELP_TEXT,
+            parse_mode="HTML",
+            reply_markup=keyboard,
+            disable_web_page_preview=True
+        )
 
 # help buttons callback
 async def help_callback(update, context):
@@ -265,7 +270,6 @@ async def help_callback(update, context):
         parse_mode="HTML",
         reply_markup=keyboard
     )
-
 # ================= LANGUAGE =================
 async def language(update, context):
     kb = InlineKeyboardMarkup([
