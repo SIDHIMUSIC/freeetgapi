@@ -693,8 +693,6 @@ app.add_handler(CallbackQueryHandler(lang_cb, pattern="^(open_lang|hi|en)$"))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 # 3️⃣ LOGS — SABSE PEHLE
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, log_message))
-# 4️⃣ GM / GN AUTO
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, gm_gn_handler))
 
 # 5️⃣ MAIN AI CHAT — LAST
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
