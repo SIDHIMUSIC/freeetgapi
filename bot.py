@@ -502,23 +502,23 @@ async def broadcast(update, context):
 # ================= OWNER =================
 async def owner_info(update, context):
     owner_name = "Harry"
-    owner_username = "@SANATANI_BACHA"
-    owner_mention = f"[{owner_name}](https://t.me/{owner_username.replace('@','')})"
+    owner_username = "SANATANI_BACHA"
 
     text = (
-        "👑 *Bot Owner Information*\n\n"
-        f"This bot is proudly owned and managed by {owner_mention} ({owner_username}).\n\n"
+        "<b>👑 Bot Owner Information</b>\n\n"
+        f"This bot is proudly owned and managed by "
+        f"<a href='https://t.me/{owner_username}'>{owner_name}</a> "
+        f"(@{owner_username}).\n\n"
         "A passionate developer and tech enthusiast focused on building "
         "smart, secure, and user-friendly AI automation bots.\n\n"
         "📢 For updates & support, join the official channel below 👇\n"
         f"{SUPPORT_CHANNEL}"
     )
 
-    # DM + Group safe send
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=text,
-        parse_mode="Markdown",
+        parse_mode="HTML",
         disable_web_page_preview=True
     )
    # ================= GM / GN DATA =================
