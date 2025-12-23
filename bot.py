@@ -113,8 +113,8 @@ START_IMAGES = [
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     kb = InlineKeyboardMarkup([
         [InlineKeyboardButton("🌍 Language", callback_data="open_lang")],
-        [InlineKeyboardButton("🤗 Help", callback_data="help")],
-        [InlineKeyboardButton("📢 Support", url=SUPPORT_CHANNEL)]
+        [InlineKeyboardButton("❖ Help❖", callback_data="help")],
+        [InlineKeyboardButton("❖ Support❖", url=SUPPORT_CHANNEL)]
     ])
     await update.message.reply_photo(
         photo=random.choice(START_IMAGES),
@@ -146,10 +146,10 @@ Admin:
 /botunban  
 /stats
 
-✔ Tag reply  
-✔ Typing ON  
-✔ Logs ON  
-✔ Memory ON
+❖ Tag reply  
+❖ Typing ON  
+❖ Logs ON  
+❖ Memory ON
 /botban <id>
 /botunban <id>
 
@@ -157,9 +157,9 @@ Admin:
 /removebadword <word>
 
 Auto:
-• Joke
-• Shayari
-• 18+ / Gaali filter
+•❍ Joke
+•❍ Shayari
+•❍ 18+ / Gaali filter
 """
 
 async def help_cmd(update, context):
@@ -568,11 +568,11 @@ GM_MEDIA = {
 
 GN_MEDIA = {
     "stickers": [
-        "CAACAgQAAx0Ce9_hCAACaEVlwn7HeZhgwyVfKHc3WUGC_447IAACLgwAAkQwKVPtub8VAR018x4E",
-        "CAACAgIAAx0Ce9_hCAACaEplwn7dvj7G0-a1v3wlbN281RMX2QACUgwAAligOUoi7DhLVTsNsh4E",
-        "CAACAgIAAx0Ce9_hCAACaFBlwn8AAZNB9mOUvz5oAyM7CT-5pjAAAtEKAALa7NhLvbTGyDLbe1IeBA",
-        "CAACAgUAAx0CcmOuMwACldVlwn9ZHHF2-S-CuMSYabwwtVGC3AACOAkAAoqR2VYDjyK6OOr_Px4E",
-        "CAACAgIAAx0Ce9_hCAACaFVlwn-fG58GKoEmmZpVovxEj4PodAACfwwAAqozQUrt2xSTf5Ac4h4E",
+        "CAACAgIAAxkDAAIBu2lJ4t_tjNass331x8mv6dFg7kjKAALRCgAC2uzYS720xsgy23tSNgQ",
+        "CAACAgIAAxkDAAIBuGlJ4tTkeV95atr9RjqXOtY_3C_PAAJSDAACWKA5SiLsOEtVOw2yNgQ",
+        "CAACAgIAAxkDAAIBxGlJ4vJXnZ0VKn2ndxAeH9AJr6XLAAJ_DAACqjNBSu3bFJN_kBziNgQ",
+        "CAACAgUAAxkBAAICTGlJ9sQ7tdxorZKIRtjy4FjiDvLwAALAEgACB0jYV2Tzocx1AAHE7zYE",
+        "CAACAgQAAxkBAAICQmlJ9WVHv_sVOIUf5SutCj_dVqL2AAJ8FgAC6U_RUB4ulkkGKMJaNgQ",
     ],
     "emojis": ["🌙", "😴", "😪", "💤", "🌌"],
 }
