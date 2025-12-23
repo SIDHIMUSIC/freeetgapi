@@ -719,6 +719,14 @@ async def gm_gn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # ❗ IMPORTANT: agar GM/GN nahi hai to kuch bhi return NAHI
     # taaki chat handler chal sake
+    
+# ================= STIKCER ID =================
+async def sticker_id(update, context):
+    if update.message.sticker:
+        await update.message.reply_text(
+            f"Sticker ID:\n<code>{update.message.sticker.file_id}</code>",
+            parse_mode="HTML"
+        )
 # ================= APP =================
 app = ApplicationBuilder().token(TOKEN).build()
 
