@@ -111,14 +111,20 @@ START_IMAGES = [
 ]
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    kb = InlineKeyboardMarkup([
-        [InlineKeyboardButton("🌍 Language", callback_data="open_lang")],
-        [InlineKeyboardButton("❖ Help❖", callback_data="help")],
-        [InlineKeyboardButton("❖ Support❖", url=SUPPORT_CHANNEL)]
+    kb = InlineKeyboardMarkup(
+        [
+            [InlineKeyboardButton("🌍 Language", callback_data="open_lang")],
+            [InlineKeyboardButton("❖ Help ❖", callback_data="help_back")],
+            [InlineKeyboardButton("❖ Support ❖", url=SUPPORT_CHANNEL)],
+        ]
     )
+
     await update.message.reply_photo(
         photo=random.choice(START_IMAGES),
-        caption=f"👋🫶 Hi {update.effective_user.first_name}\n🤖 Smart AI Bot Ready",
+        caption=(
+            f"👋🫶 Hi {update.effective_user.first_name}\n"
+            "🤖 Smart AI Bot Ready"
+        ),
         reply_markup=kb
     )
 
