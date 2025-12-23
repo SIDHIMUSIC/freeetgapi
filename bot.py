@@ -730,22 +730,12 @@ async def sticker_id(update, context):
 # ================= APP =================
 app = ApplicationBuilder().token(TOKEN).build()
 
+# 1️⃣ COMMANDS
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("help", help_cmd))
-
-# CALLBACKS (IMPORTANT ORDER)
-app.add_handler(CallbackQueryHandler(help_callback, pattern="^help_"))
-app.add_handler(CallbackQueryHandler(lang_cb, pattern="^(open_lang|hi|en)$"))
-
 app.add_handler(CommandHandler("language", language))
 app.add_handler(CommandHandler("image", image_cmd))
 app.add_handler(CommandHandler("owner", owner_info))
-
-# TEXT HANDLERS
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, gm_gn_handler))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
-
-# OTHERS
 app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("unban", unban))
 app.add_handler(CommandHandler("botban", botban))
@@ -755,6 +745,22 @@ app.add_handler(CommandHandler("id", id_cmd))
 app.add_handler(CommandHandler("addbadword", addbadword))
 app.add_handler(CommandHandler("removebadword", removebadword))
 app.add_handler(CommandHandler("broadcast", broadcast))
+
+# 2️⃣ CALLBACK BUTTONS (IMPORTANT ORDER)
+app.add_handler(CallbackQueryHandler(help_callback, pattern="^help_"))
+app.add_handler(CallbackQueryHandler(lang_cb, pattern="^(open_lang|hi|en)$"))
+
+# 3️⃣ LOGS — SABSE PEHLE
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, log_message))
+
+# 4️⃣ GM / GN AUTO
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, gm_gn_handler))
+
+# 5️⃣ MAIN AI CHAT — LAST
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
+
+# 6️⃣ STICKER HANDLER (OPTIONAL)
 app.add_handler(MessageHandler(filters.Sticker.ALL, sticker_id))
+
 print("🤖 BOT STARTED BY HARRY TG @SANATANI_BACHA")
 app.run_polling(drop_pending_updates=True)
