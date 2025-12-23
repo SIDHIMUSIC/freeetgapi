@@ -507,7 +507,7 @@ async def owner_info(update, context):
     owner_username = "SANATANI_BACHA"
 
     text = (
-        "<b>👑 ʙᴏᴛ ᴏᴡɴᴇʀ ᴘʀᴏғɪʟᴇ</b>\n"
+        "<b>👑 ʙᴏᴛ ᴏᴡɴᴇʀ ᴘʀᴏғɪʟᴇ✨</b>\n"
         "━━━━━━━━━━━━━━━━━━\n\n"
 
         "✨ ᴛʜɪs ɪɴᴛᴇʟʟɪɢᴇɴᴛ ᴀɪ ʙᴏᴛ ɪs ᴘʀᴏᴜᴅʟʏ ᴄʀᴀғᴛᴇᴅ,\n"
@@ -591,6 +591,13 @@ async def gm_gn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
+# ================= STIKCER ID =================
+async def sticker_id(update, context):
+    if update.message.sticker:
+        await update.message.reply_text(
+            f"Sticker ID:\n<code>{update.message.sticker.file_id}</code>",
+            parse_mode="HTML"
+        )
 # ================= APP =================
 app = ApplicationBuilder().token(TOKEN).build()
 
@@ -612,6 +619,7 @@ app.add_handler(CommandHandler("addbadword", addbadword))
 app.add_handler(CommandHandler("removebadword", removebadword))
 app.add_handler(CommandHandler("id", id_cmd))
 app.add_handler(CommandHandler("stats", stats))
+app.add_handler(MessageHandler(filters.Sticker.ALL, sticker_id))
 app.add_handler(CommandHandler("broadcast", broadcast))
 print("🤖 BOT STARTED BY HARRY TG @SANATANI_BACHA")
 app.run_polling(drop_pending_updates=True)
