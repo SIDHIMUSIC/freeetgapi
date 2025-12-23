@@ -49,7 +49,7 @@ async def is_admin(update, context):
 # ================= LOG EVERY MESSAGE =================
 async def log_message(update, context):
     if not update.message or not update.message.text:
-        #return
+        return
 
     user = update.effective_user
     chat = update.effective_chat
