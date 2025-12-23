@@ -660,33 +660,13 @@ async def owner_info(update, context):
         reply_markup=keyboard,
         disable_web_page_preview=True
     )
- # ================= GM / GN MEDIA ================
+ # ================= GM / GN MEDIA =================
+import random
+import re
+from telegram import Update
+from telegram.ext import ContextTypes
 
- #GM_MEDIA = {
-    "stickers": [
-        "CAACAgUAAxkBAAIB1mlJ6so-N7Qd29gyGX0bnkE2xpv6AAKCEAAC_k_4V3tFbOFsrqp_NgQ",
-        "CAACAgUAAxkBAAIB2GlJ6tIHaEIms5V3hZR8sh8JCzaaAALXEgACwtv4V2UgjSmAqjIkNgQ",
-        "CAACAgUAAxkBAAIB12lJ6tBEixkR877OYfnEOtYtYxPWAAI0FAACypbwV1RBw2OWBm2cNgQ",
-        "CAACAgUAAxkBAAIB2mlJ6tjnRCg6Vku3p-rPcttbzKkEAALlFAAC7PfxV3TqCOAf2ao2NgQ",
-        "CAACAgUAAxkBAAIB5GlJ8wAB8If809omWYLgQVF3xImnYAAC5xEAAg8Z-VfxLwcy-QnUBjYE",
-    ],
-    "emojis": ["☀️", "🌞", "🌅", "😊", "🌸"],
-}
-
-#GN_MEDIA = {
-    "stickers": [
-        "CAACAgIAAxkDAAIBu2lJ4t_tjNass331x8mv6dFg7kjKAALRCgAC2uzYS720xsgy23tSNgQ",
-        "CAACAgIAAxkDAAIBuGlJ4tTkeV95atr9RjqXOtY_3C_PAAJSDAACWKA5SiLsOEtVOw2yNgQ",
-        "CAACAgIAAxkDAAIBxGlJ4vJXnZ0VKn2ndxAeH9AJr6XLAAJ_DAACqjNBSu3bFJN_kBziNgQ",
-        "CAACAgUAAxkBAAICTGlJ9sQ7tdxorZKIRtjy4FjiDvLwAALAEgACB0jYV2Tzocx1AAHE7zYE",
-        "CAACAgQAAxkBAAICQmlJ9WVHv_sVOIUf5SutCj_dVqL2AAJ8FgAC6U_RUB4ulkkGKMJaNgQ",
-    ],
-    "emojis": ["🌙", "😴", "😪", "💤", "🌌"],
-}
-# ================ GM / GN HANDLER =================
-import random, re
-
-#GM_GN_MEDIA = {
+GM_GN_MEDIA = {
     "gm": {
         "stickers": [
             "CAACAgIAAxkBAAIBF2QAAAAAA1",
@@ -696,7 +676,7 @@ import random, re
             "CAACAgIAAxkBAAIBF2QAAAAAA5",
         ],
         "emojis": ["☀️", "🌅", "😊", "🌸", "🌞"]
-     },
+    },
     "gn": {
         "stickers": [
             "CAACAgQAAx0Ce9_hCAACaEVlwn7HeZhgwyVfKHc3WUGC_447IAACLgwAAkQwKVPtub8VAR018x4E",
@@ -708,7 +688,8 @@ import random, re
         "emojis": ["😴", "😪", "💤", "🌙", "🌌"]
     }
 }
-###############
+
+# ================= GM / GN HANDLER =================
 async def gm_gn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
@@ -716,20 +697,20 @@ async def gm_gn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.lower().strip()
     sender = update.effective_user.mention_html()
 
-     🌙 GOOD NIGHT
-   if re.fullmatch(r"(gn|good night|goodnight)", text):
+    # 🌙 GOOD NIGHT
+    if re.fullmatch(r"(gn|good night|goodnight)", text):
         sticker = random.choice(GM_GN_MEDIA["gn"]["stickers"])
         emoji = random.choice(GM_GN_MEDIA["gn"]["emojis"])
 
         await context.bot.send_sticker(update.effective_chat.id, sticker)
         await update.message.reply_html(
             "❖ ɢᴏᴏᴅ ɴɪɢʜᴛ ❖ sᴡᴇᴇᴛ ᴅʀᴇᴀᴍs ❖\n\n"
-             f"❍ {sender} {emoji}\n\n"
+            f"❍ {sender} {emoji}\n\n"
             "❖ ɢᴏ ᴛᴏ ➥ sʟᴇᴇᴘ ᴇᴀʀʟʏ"
         )
-        return  # ❗ yahin ruk jao
+        return
 
-     ☀️ GOOD MORNING
+    # ☀️ GOOD MORNING
     if re.fullmatch(r"(gm|good morning|goodmorning)", text):
         sticker = random.choice(GM_GN_MEDIA["gm"]["stickers"])
         emoji = random.choice(GM_GN_MEDIA["gm"]["emojis"])
@@ -741,10 +722,6 @@ async def gm_gn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "❖ sᴛᴀʏ ➥ ʜᴀᴘᴘʏ & ʙʟᴇssᴇᴅ"
         )
         return
-
-     ❗ GM / GN nahi hua to kuch return mat karo
-    # taaki chat handler kaam kare
-    
 # ================= STIKCER ID =================
 #async def sticker_id(update, context):
 #    if update.message.sticker:
