@@ -499,8 +499,8 @@ async def broadcast(update, context):
         f"❌ Failed: {failed}"
     )
     
-# ================= APP =================
-    async def owner_info(update, context):
+# ================= OWNER =================
+async def owner_info(update, context):
     owner_name = "Harry"
     owner_username = "@SANATANI_BACHA"
     owner_mention = f"[{owner_name}](https://t.me/{owner_username.replace('@','')})"
