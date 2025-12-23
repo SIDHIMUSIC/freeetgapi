@@ -583,11 +583,16 @@ async def gm_gn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = update.message.text.lower().strip()
     sender = update.effective_user.mention_html()
-    sticker = random.choice(GM_GN_STICKERS)
-    emoji = random.choice(EMOJIS)
 
+    # 🌙 GOOD NIGHT
     if text in ("gn", "good night", "goodnight"):
-        await context.bot.send_sticker(update.effective_chat.id, sticker)
+        sticker = random.choice(GN_MEDIA["stickers"])
+        emoji = random.choice(GN_MEDIA["emojis"])
+
+        await context.bot.send_sticker(
+            chat_id=update.effective_chat.id,
+            sticker=sticker
+        )
         await update.message.reply_html(
             "❖ ɢᴏᴏᴅ ɴɪɢʜᴛ ❖ sᴡᴇᴇᴛ ᴅʀᴇᴀᴍs ❖\n\n"
             f"❍ {sender} {emoji}\n\n"
@@ -595,15 +600,21 @@ async def gm_gn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
+    # 🌅 GOOD MORNING
     if text in ("gm", "good morning", "goodmorning"):
-        await context.bot.send_sticker(update.effective_chat.id, sticker)
+        sticker = random.choice(GM_MEDIA["stickers"])
+        emoji = random.choice(GM_MEDIA["emojis"])
+
+        await context.bot.send_sticker(
+            chat_id=update.effective_chat.id,
+            sticker=sticker
+        )
         await update.message.reply_html(
             "❖ ɢᴏᴏᴅ ᴍᴏʀɴɪɴɢ ❖ ʜᴀᴠᴇ ᴀ ɴɪᴄᴇ ᴅᴀʏ ❖\n\n"
             f"❍ {sender} {emoji}\n\n"
             "❖ sᴛᴀʏ ➥ ʜᴀᴘᴘʏ & ʙʟᴇssᴇᴅ"
         )
         return
-
 # ================= STIKCER ID =================
 async def sticker_id(update, context):
     if update.message.sticker:
