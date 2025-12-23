@@ -507,13 +507,26 @@ async def owner_info(update, context):
     owner_username = "SANATANI_BACHA"
 
     text = (
-        "<b>👑 Bot Owner Information</b>\n\n"
-        f"This bot is proudly owned ✉️and managed by "
-        f"<a href='https://t.me/{owner_username}'>{owner_name}</a> "
-        f"(@{owner_username}).\n\n"
-        "A passionate developer🤖 and tech enthusiast focused on building "
-        "smart, secure, and user-friendly AI automation bots.\n\n"
-        "👇 Choose an option below"
+        "<b>👑 ʙᴏᴛ ᴏᴡɴᴇʀ ᴘʀᴏғɪʟᴇ</b>\n"
+        "━━━━━━━━━━━━━━━━━━\n\n"
+
+        "✨ ᴛʜɪs ɪɴᴛᴇʟʟɪɢᴇɴᴛ ᴀɪ ʙᴏᴛ ɪs ᴘʀᴏᴜᴅʟʏ ᴄʀᴀғᴛᴇᴅ,\n"
+        "ᴏᴡɴᴇᴅ ᴀɴᴅ ᴍᴀɴᴀɢᴇᴅ ʙʏ\n\n"
+
+        f"👤 <b><a href='https://t.me/{owner_username}'>{owner_name}</a></b>\n"
+        f"🔗 @{owner_username}\n\n"
+
+        "🚀 ᴀ ᴘᴀssɪᴏɴᴀᴛᴇ ᴅᴇᴠᴇʟᴏᴘᴇʀ & ᴛᴇᴄʜ ᴇɴᴛʜᴜsɪᴀsᴛ\n"
+        "• sᴍᴀʀᴛ ᴀᴜᴛᴏᴍᴀᴛɪᴏɴ 🤖\n"
+        "• sᴇᴄᴜʀᴇ sʏsᴛᴇᴍs 🔐\n"
+        "• sᴍᴏᴏᴛʜ ᴜsᴇʀ ᴇxᴘᴇʀɪᴇɴᴄᴇ 💎\n\n"
+
+        "💡 ᴠɪsɪᴏɴ\n"
+        "ᴄʀᴇᴀᴛɪɴɢ ᴘᴏᴡᴇʀғᴜʟ, ʀᴇʟɪᴀʙʟᴇ ᴀɴᴅ\n"
+        "ᴜsᴇʀ-ғʀɪᴇɴᴅʟʏ ᴀɪ ʙᴏᴛs\n"
+        "ᴛʜᴀᴛ ᴍᴀᴋᴇ ᴛᴇʟᴇɢʀᴀᴍ sᴍᴀʀᴛᴇʀ ⚡\n\n"
+
+        "👇 ᴄᴏɴɴᴇᴄᴛ & sᴛᴀʏ ᴜᴘᴅᴀᴛᴇᴅ"
     )
 
     keyboard = InlineKeyboardMarkup(
