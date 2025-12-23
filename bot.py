@@ -191,16 +191,16 @@ async def help_cmd(update, context):
         ]
     )
 
-    # ✅ SAFE: command vs callback
-    if update.message:  # /help command
-        await update.message.reply_text(
+    # ✅ ALWAYS send a NEW message (photo-safe)
+    if update.callback_query:
+        await update.callback_query.message.reply_text(
             HELP_TEXT,
             parse_mode="HTML",
             reply_markup=keyboard,
             disable_web_page_preview=True
         )
-    else:  # back button
-        await update.callback_query.message.edit_text(
+    else:
+        await update.message.reply_text(
             HELP_TEXT,
             parse_mode="HTML",
             reply_markup=keyboard,
@@ -265,10 +265,12 @@ async def help_callback(update, context):
         ]
     )
 
-    await query.message.edit_text(
+    # ✅ ALWAYS SEND NEW MESSAGE (NO edit_text)
+    await query.message.reply_text(
         text,
         parse_mode="HTML",
-        reply_markup=keyboard
+        reply_markup=keyboard,
+        disable_web_page_preview=True
     )
 # ================= LANGUAGE =================
 async def language(update, context):
