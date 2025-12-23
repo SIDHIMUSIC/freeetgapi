@@ -115,7 +115,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("🌍 Language", callback_data="open_lang")],
         [InlineKeyboardButton("❖ Help❖", callback_data="help")],
         [InlineKeyboardButton("❖ Support❖", url=SUPPORT_CHANNEL)]
-    ])
+    )
     await update.message.reply_photo(
         photo=random.choice(START_IMAGES),
         caption=f"👋🫶 Hi {update.effective_user.first_name}\n🤖 Smart AI Bot Ready",
@@ -123,47 +123,142 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 # ================= HELP =================
-HELP_TEXT = """
-🤖 BOT FULL FUNCTION LIST
+# ================= HELP =================
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 
-/start – Bot start  
-/help – All functions  
-/id – User & Chat ID  
-/language – Hindi / English  
+HELP_TEXT = (
+    "🤖 <b>BOT FULL FUNCTION LIST</b>\n"
+    "━━━━━━━━━━━━━━━━━━\n\n"
 
-/image <prompt> – AI Image  
+    "<b>Basic Commands</b>\n"
+    "/start – Bot start\n"
+    "/help – All functions\n"
+    "/id – User & Chat ID\n"
+    "/language – Hindi / English\n\n"
 
-Auto:
-•❍ joke / funny → Joke  
-•❍ shayari / love / sad → Shayari  
+    "<b>AI Image</b>\n"
+    "/image &lt;prompt&gt; – AI Image\n\n"
 
-Admin:
-/ban  
-/unban  
+    "<b>Auto Replies</b>\n"
+    "• joke / funny → Joke\n"
+    "• shayari / love / sad → Shayari\n"
+    "• GM / GN → Auto Reply\n"
+    "• 18+ / Gaali → Auto Filter\n\n"
 
-👑Owner:
-/botban  
-/botunban  
-/stats
+    "<b>Admin</b>\n"
+    "/ban\n"
+    "/unban\n\n"
 
-❖ Tag reply  
-❖ Typing ON  
-❖ Logs ON  
-❖ Memory ON
-/botban <id>
-/botunban <id>
+    "<b>Owner</b>\n"
+    "/botban &lt;id&gt;\n"
+    "/botunban &lt;id&gt;\n"
+    "/stats\n\n"
 
-/addbadword <word>
-/removebadword <word>
+    "<b>System</b>\n"
+    "❖ Tag reply\n"
+    "❖ Typing ON\n"
+    "❖ Logs ON\n"
+    "❖ Memory ON\n\n"
 
-Auto:
-•❍ Joke
-•❍ Shayari
-•❍ 18+ / Gaali filter
-"""
+    "<b>Bad Word Filter</b>\n"
+    "/addbadword &lt;word&gt;\n"
+    "/removebadword &lt;word&gt;\n\n"
 
+    "👇 <i>Use buttons below for category-wise help</i>"
+)
+
+# /help command
 async def help_cmd(update, context):
-    await update.message.reply_text(HELP_TEXT, parse_mode="Markdown")
+    keyboard = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton("📌 Basic", callback_data="help_basic"),
+                InlineKeyboardButton("🖼 AI Image", callback_data="help_image"),
+            ],
+            [
+                InlineKeyboardButton("🤖 Auto", callback_data="help_auto"),
+                InlineKeyboardButton("🛡 Admin", callback_data="help_admin"),
+            ],
+            [
+                InlineKeyboardButton("👑 Owner", callback_data="help_owner"),
+                InlineKeyboardButton("❌ Close", callback_data="help_close"),
+            ],
+        ]
+    )
+
+    # command + callback dono ke liye safe
+    msg = update.message if update.message else update.callback_query.message
+
+    await msg.edit_text(
+        HELP_TEXT,
+        parse_mode="HTML",
+        reply_markup=keyboard,
+        disable_web_page_preview=True
+    )
+
+# help buttons callback
+async def help_callback(update, context):
+    query = update.callback_query
+    await query.answer()
+    data = query.data
+
+    if data == "help_basic":
+        text = (
+            "📌 <b>BASIC COMMANDS</b>\n\n"
+            "/start\n/help\n/id\n/language"
+        )
+
+    elif data == "help_image":
+        text = (
+            "🖼 <b>AI IMAGE</b>\n\n"
+            "/image &lt;prompt&gt;\n"
+            "<code>/image lord krishna digital art</code>"
+        )
+
+    elif data == "help_auto":
+        text = (
+            "🤖 <b>AUTO FEATURES</b>\n\n"
+            "Joke\nShayari\nGM / GN\n18+ / Gaali Filter"
+        )
+
+    elif data == "help_admin":
+        text = (
+            "🛡 <b>ADMIN COMMANDS</b>\n\n"
+            "/ban\n/unban\n"
+            "/addbadword &lt;word&gt;\n"
+            "/removebadword &lt;word&gt;"
+        )
+
+    elif data == "help_owner":
+        text = (
+            "👑 <b>OWNER COMMANDS</b>\n\n"
+            "/botban &lt;id&gt;\n"
+            "/botunban &lt;id&gt;\n"
+            "/stats"
+        )
+
+    elif data == "help_back":
+        await help_cmd(update, context)
+        return
+
+    elif data == "help_close":
+        await query.message.delete()
+        return
+
+    keyboard = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton("⬅ Back", callback_data="help_back"),
+                InlineKeyboardButton("❌ Close", callback_data="help_close"),
+            ]
+        ]
+    )
+
+    await query.message.edit_text(
+        text,
+        parse_mode="HTML",
+        reply_markup=keyboard
+    )
 
 # ================= LANGUAGE =================
 async def language(update, context):
@@ -627,6 +722,7 @@ app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("help", help_cmd))
+app.add_handler(CallbackQueryHandler(help_callback))
 app.add_handler(CommandHandler("language", language))
 app.add_handler(CommandHandler("image", image_cmd))
 app.add_handler(CommandHandler("ban", ban))
