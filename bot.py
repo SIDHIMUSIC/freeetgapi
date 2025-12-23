@@ -521,6 +521,44 @@ async def owner_info(update, context):
         parse_mode="Markdown",
         disable_web_page_preview=True
     )
+   # ================= GM / GN DATA =================
+GM_GN_STICKERS = [
+    "CAACAgQAAx0Ce9_hCAACaEVlwn7HeZhgwyVfKHc3WUGC_447IAACLgwAAkQwKVPtub8VAR018x4E",
+    "CAACAgIAAx0Ce9_hCAACaEplwn7dvj7G0-a1v3wlbN281RMX2QACUgwAAligOUoi7DhLVTsNsh4E",
+    "CAACAgIAAx0Ce9_hCAACaFBlwn8AAZNB9mOUvz5oAyM7CT-5pjAAAtEKAALa7NhLvbTGyDLbe1IeBA",
+    "CAACAgUAAx0CcmOuMwACldVlwn9ZHHF2-S-CuMSYabwwtVGC3AACOAkAAoqR2VYDjyK6OOr_Px4E",
+    "CAACAgIAAx0Ce9_hCAACaFVlwn-fG58GKoEmmZpVovxEj4PodAACfwwAAqozQUrt2xSTf5Ac4h4E",
+]
+
+EMOJIS = ["😴", "😪", "💤", "🌙", "☀️", "😊", "🌸"]
+# ================ GM / GN HANDLER =================
+async def gm_gn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message or not update.message.text:
+        return
+
+    text = update.message.text.lower().strip()
+    sender = update.effective_user.mention_html()
+    sticker = random.choice(GM_GN_STICKERS)
+    emoji = random.choice(EMOJIS)
+
+    if text in ("gn", "good night", "goodnight"):
+        await context.bot.send_sticker(update.effective_chat.id, sticker)
+        await update.message.reply_html(
+            "❖ ɢᴏᴏᴅ ɴɪɢʜᴛ ❖ sᴡᴇᴇᴛ ᴅʀᴇᴀᴍs ❖\n\n"
+            f"❍ {sender} {emoji}\n\n"
+            "❖ ɢᴏ ᴛᴏ ➥ sʟᴇᴇᴘ ᴇᴀʀʟʏ"
+        )
+        return
+
+    if text in ("gm", "good morning", "goodmorning"):
+        await context.bot.send_sticker(update.effective_chat.id, sticker)
+        await update.message.reply_html(
+            "❖ ɢᴏᴏᴅ ᴍᴏʀɴɪɴɢ ❖ ʜᴀᴠᴇ ᴀ ɴɪᴄᴇ ᴅᴀʏ ❖\n\n"
+            f"❍ {sender} {emoji}\n\n"
+            "❖ sᴛᴀʏ ➥ ʜᴀᴘᴘʏ & ʙʟᴇssᴇᴅ"
+        )
+        return
+
 # ================= APP =================
 app = ApplicationBuilder().token(TOKEN).build()
 
@@ -540,5 +578,8 @@ app.add_handler(CommandHandler("id", id_cmd))
 app.add_handler(CommandHandler("stats", stats))
 app.add_handler(CommandHandler("broadcast", broadcast))
 app.add_handler(CommandHandler("owner", owner_info))
+app.add_handler(
+    MessageHandler(filters.TEXT & ~filters.COMMAND, gm_gn_handler)
+)
 print("🤖 BOT STARTED BY HARRY TG @SANATANI_BACHA")
 app.run_polling(drop_pending_updates=True)
