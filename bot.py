@@ -706,8 +706,8 @@ async def owner_info(update, context):
  #           "CAACAgIAAx0Ce9_hCAACaFVlwn-fG58GKoEmmZpVovxEj4PodAACfwwAAqozQUrt2xSTf5Ac4h4E",
  #       ],
      #   "emojis": ["😴", "😪", "💤", "🌙", "🌌"]
-    }
-}
+   # }
+#}
 ###############
 #async def gm_gn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
  #   if not update.message or not update.message.text:
