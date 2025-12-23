@@ -662,7 +662,7 @@ async def owner_info(update, context):
     )
  # ================= GM / GN MEDIA ================
 
- GM_MEDIA = {
+ #GM_MEDIA = {
     "stickers": [
         "CAACAgUAAxkBAAIB1mlJ6so-N7Qd29gyGX0bnkE2xpv6AAKCEAAC_k_4V3tFbOFsrqp_NgQ",
         "CAACAgUAAxkBAAIB2GlJ6tIHaEIms5V3hZR8sh8JCzaaAALXEgACwtv4V2UgjSmAqjIkNgQ",
@@ -673,7 +673,7 @@ async def owner_info(update, context):
     "emojis": ["☀️", "🌞", "🌅", "😊", "🌸"],
 }
 
-GN_MEDIA = {
+#GN_MEDIA = {
     "stickers": [
         "CAACAgIAAxkDAAIBu2lJ4t_tjNass331x8mv6dFg7kjKAALRCgAC2uzYS720xsgy23tSNgQ",
         "CAACAgIAAxkDAAIBuGlJ4tTkeV95atr9RjqXOtY_3C_PAAJSDAACWKA5SiLsOEtVOw2yNgQ",
@@ -686,7 +686,7 @@ GN_MEDIA = {
 # ================ GM / GN HANDLER =================
 import random, re
 
-GM_GN_MEDIA = {
+#GM_GN_MEDIA = {
     "gm": {
         "stickers": [
             "CAACAgIAAxkBAAIBF2QAAAAAA1",
