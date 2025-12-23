@@ -684,28 +684,28 @@ async def owner_info(update, context):
    # "emojis": ["🌙", "😴", "😪", "💤", "🌌"],
 #}
 # ================ GM / GN HANDLER =================
-import random, re
+#import random, re
 
-GM_GN_MEDIA = {
-    "gm": {
-        "stickers": [
-            "CAACAgIAAxkBAAIBF2QAAAAAA1",
-            "CAACAgIAAxkBAAIBF2QAAAAAA2",
-            "CAACAgIAAxkBAAIBF2QAAAAAA3",
-            "CAACAgIAAxkBAAIBF2QAAAAAA4",
-            "CAACAgIAAxkBAAIBF2QAAAAAA5",
-        ],
-        "emojis": ["☀️", "🌅", "😊", "🌸", "🌞"]
-    },
-    "gn": {
-        "stickers": [
-            "CAACAgQAAx0Ce9_hCAACaEVlwn7HeZhgwyVfKHc3WUGC_447IAACLgwAAkQwKVPtub8VAR018x4E",
-            "CAACAgIAAx0Ce9_hCAACaEplwn7dvj7G0-a1v3wlbN281RMX2QACUgwAAligOUoi7DhLVTsNsh4E",
-            "CAACAgIAAx0Ce9_hCAACaFBlwn8AAZNB9mOUvz5oAyM7CT-5pjAAAtEKAALa7NhLvbTGyDLbe1IeBA",
-            "CAACAgUAAx0CcmOuMwACldVlwn9ZHHF2-S-CuMSYabwwtVGC3AACOAkAAoqR2VYDjyK6OOr_Px4E",
-            "CAACAgIAAx0Ce9_hCAACaFVlwn-fG58GKoEmmZpVovxEj4PodAACfwwAAqozQUrt2xSTf5Ac4h4E",
-        ],
-        "emojis": ["😴", "😪", "💤", "🌙", "🌌"]
+##GM_GN_MEDIA = {
+ #   "gm": {
+#        "stickers": [
+       #     "CAACAgIAAxkBAAIBF2QAAAAAA1",
+       #     "CAACAgIAAxkBAAIBF2QAAAAAA2",
+      #      "CAACAgIAAxkBAAIBF2QAAAAAA3",
+      #      "CAACAgIAAxkBAAIBF2QAAAAAA4",
+        #    "CAACAgIAAxkBAAIBF2QAAAAAA5",
+ #       ],
+#        "emojis": ["☀️", "🌅", "😊", "🌸", "🌞"]
+#    },
+#    "gn": {
+#        "stickers": [
+ #           "CAACAgQAAx0Ce9_hCAACaEVlwn7HeZhgwyVfKHc3WUGC_447IAACLgwAAkQwKVPtub8VAR018x4E",
+ #           "CAACAgIAAx0Ce9_hCAACaEplwn7dvj7G0-a1v3wlbN281RMX2QACUgwAAligOUoi7DhLVTsNsh4E",
+   #         "CAACAgIAAx0Ce9_hCAACaFBlwn8AAZNB9mOUvz5oAyM7CT-5pjAAAtEKAALa7NhLvbTGyDLbe1IeBA",
+    #        "CAACAgUAAx0CcmOuMwACldVlwn9ZHHF2-S-CuMSYabwwtVGC3AACOAkAAoqR2VYDjyK6OOr_Px4E",
+ #           "CAACAgIAAx0Ce9_hCAACaFVlwn-fG58GKoEmmZpVovxEj4PodAACfwwAAqozQUrt2xSTf5Ac4h4E",
+ #       ],
+     #   "emojis": ["😴", "😪", "💤", "🌙", "🌌"]
     }
 }
 ###############
@@ -777,7 +777,7 @@ app.add_handler(CallbackQueryHandler(lang_cb, pattern="^(open_lang|hi|en)$"))
 
 # 3️⃣ LOGS — SABSE PEHLE
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, log_message))
-
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 # 4️⃣ GM / GN AUTO
 #app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, gm_gn_handler))
 
