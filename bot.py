@@ -728,24 +728,29 @@ app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("help", help_cmd))
-app.add_handler(CallbackQueryHandler(help_callback))
+
+# CALLBACKS (IMPORTANT ORDER)
+app.add_handler(CallbackQueryHandler(help_callback, pattern="^help_"))
+app.add_handler(CallbackQueryHandler(lang_cb, pattern="^(open_lang|hi|en)$"))
+
 app.add_handler(CommandHandler("language", language))
 app.add_handler(CommandHandler("image", image_cmd))
+app.add_handler(CommandHandler("owner", owner_info))
+
+# TEXT HANDLERS
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, gm_gn_handler))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
+
+# OTHERS
 app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("unban", unban))
 app.add_handler(CommandHandler("botban", botban))
 app.add_handler(CommandHandler("botunban", botunban))
-app.add_handler(CallbackQueryHandler(lang_cb))
-app.add_handler(CommandHandler("owner", owner_info))
-app.add_handler(
-    MessageHandler(filters.TEXT & ~filters.COMMAND, gm_gn_handler)
-)
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
+app.add_handler(CommandHandler("stats", stats))
+app.add_handler(CommandHandler("id", id_cmd))
 app.add_handler(CommandHandler("addbadword", addbadword))
 app.add_handler(CommandHandler("removebadword", removebadword))
-app.add_handler(CommandHandler("id", id_cmd))
-app.add_handler(CommandHandler("stats", stats))
-app.add_handler(MessageHandler(filters.Sticker.ALL, sticker_id))
 app.add_handler(CommandHandler("broadcast", broadcast))
+app.add_handler(MessageHandler(filters.Sticker.ALL, sticker_id))
 print("🤖 BOT STARTED BY HARRY TG @SANATANI_BACHA")
 app.run_polling(drop_pending_updates=True)
