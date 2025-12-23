@@ -682,6 +682,9 @@ GN_MEDIA = {
     "emojis": ["🌙", "😴", "😪", "💤", "🌌"],
 }
 # ================ GM / GN HANDLER =================
+import re
+import random
+
 async def gm_gn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
@@ -689,44 +692,33 @@ async def gm_gn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.lower().strip()
     sender = update.effective_user.mention_html()
 
-    # 🌙 GOOD NIGHT
-    if text in ("gn", "good night", "goodnight"):
-        sticker = random.choice(GN_MEDIA["stickers"])
-        emoji = random.choice(GN_MEDIA["emojis"])
+    # ✅ exact words only (gn, gm, good night, good morning)
+    if re.fullmatch(r"(gn|good night|goodnight)", text):
+        sticker = random.choice(GN_STICKERS)
+        emoji = random.choice(GN_EMOJIS)
 
-        await context.bot.send_sticker(
-            chat_id=update.effective_chat.id,
-            sticker=sticker
-        )
+        await context.bot.send_sticker(update.effective_chat.id, sticker)
         await update.message.reply_html(
             "❖ ɢᴏᴏᴅ ɴɪɢʜᴛ ❖ sᴡᴇᴇᴛ ᴅʀᴇᴀᴍs ❖\n\n"
             f"❍ {sender} {emoji}\n\n"
             "❖ ɢᴏ ᴛᴏ ➥ sʟᴇᴇᴘ ᴇᴀʀʟʏ"
         )
-        return
+        return  # GN ke baad chat nahi chahiye
 
-    # 🌅 GOOD MORNING
-    if text in ("gm", "good morning", "goodmorning"):
-        sticker = random.choice(GM_MEDIA["stickers"])
-        emoji = random.choice(GM_MEDIA["emojis"])
+    if re.fullmatch(r"(gm|good morning|goodmorning)", text):
+        sticker = random.choice(GM_STICKERS)
+        emoji = random.choice(GM_EMOJIS)
 
-        await context.bot.send_sticker(
-            chat_id=update.effective_chat.id,
-            sticker=sticker
-        )
+        await context.bot.send_sticker(update.effective_chat.id, sticker)
         await update.message.reply_html(
-            "❖ ɢᴏᴏᴅ ᴍᴏʀɴɪɴɢ ❖ ʜᴀᴠᴇ ᴀ ɴɪᴄᴇ ᴅᴀʏ ❖\n\n"
+            "❖ ɢᴏᴏᴅ ᴍᴏʀɴɪɴɢ ❖ ʜᴀᴠᴇ ᴀ ɢʀᴇᴀᴛ ᴅᴀʏ ❖\n\n"
             f"❍ {sender} {emoji}\n\n"
             "❖ sᴛᴀʏ ➥ ʜᴀᴘᴘʏ & ʙʟᴇssᴇᴅ"
         )
         return
-# ================= STIKCER ID =================
-async def sticker_id(update, context):
-    if update.message.sticker:
-        await update.message.reply_text(
-            f"Sticker ID:\n<code>{update.message.sticker.file_id}</code>",
-            parse_mode="HTML"
-        )
+
+    # ❗ IMPORTANT: agar GM/GN nahi hai to kuch bhi return NAHI
+    # taaki chat handler chal sake
 # ================= APP =================
 app = ApplicationBuilder().token(TOKEN).build()
 
