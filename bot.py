@@ -134,8 +134,8 @@ HELP_TEXT = """
 /image <prompt> – AI Image  
 
 Auto:
-• joke / funny → Joke  
-• shayari / love / sad → Shayari  
+•❍ joke / funny → Joke  
+•❍ shayari / love / sad → Shayari  
 
 Admin:
 /ban  
@@ -186,7 +186,7 @@ async def lang_cb(update, context):
         {"$set": {"lang": q.data}},
         upsert=True
     )
-    await q.message.reply_text("✅ Language set")
+    await q.message.reply_text("❍ Language set❍")
 
 # ================= IMAGE =================
 async def image_cmd(update, context):
@@ -283,7 +283,7 @@ async def addbadword(update, context):
     if badwords.find_one({"word": word}):
         return await update.message.reply_text("⚠️ Word already added")
     badwords.insert_one({"word": word, "time": time.time()})
-    await update.message.reply_text(f"✅ Added badword: `{word}`", parse_mode="Markdown")
+    await update.message.reply_text(f"❍ Added badword❍: `{word}`", parse_mode="Markdown")
 
 async def removebadword(update, context):
     if not is_owner(update.effective_user.id):
@@ -500,25 +500,44 @@ async def broadcast(update, context):
     )
     
 # ================= OWNER =================
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+
 async def owner_info(update, context):
-    owner_name = "Harry"
+    owner_name = "𓆩◕🇭𝐀𝐑𝐑𝐘◕𓆪 =‌𐏓 𝄗⃝🇮🇳™"
     owner_username = "SANATANI_BACHA"
 
     text = (
         "<b>👑 Bot Owner Information</b>\n\n"
-        f"This bot is proudly owned and managed by "
+        f"This bot is proudly owned ✉️and managed by "
         f"<a href='https://t.me/{owner_username}'>{owner_name}</a> "
         f"(@{owner_username}).\n\n"
-        "A passionate developer and tech enthusiast focused on building "
+        "A passionate developer🤖 and tech enthusiast focused on building "
         "smart, secure, and user-friendly AI automation bots.\n\n"
-        "📢 For updates & support, join the official channel below 👇\n"
-        f"{SUPPORT_CHANNEL}"
+        "👇 Choose an option below"
+    )
+
+    keyboard = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    text="❍ 𝐎ᴡɴᴇʀ ❍",
+                    url=f"https://t.me/{owner_username}"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="❍ Support Channel ❍",
+                    url=SUPPORT_CHANNEL
+                )
+            ]
+        ]
     )
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=text,
         parse_mode="HTML",
+        reply_markup=keyboard,
         disable_web_page_preview=True
     )
    # ================= GM / GN DATA =================
