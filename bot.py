@@ -660,7 +660,7 @@ async def owner_info(update, context):
         reply_markup=keyboard,
         disable_web_page_preview=True
     )
- ================= GM / GN MEDIA ================
+ # ================= GM / GN MEDIA ================
 
  GM_MEDIA = {
     "stickers": [
