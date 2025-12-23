@@ -660,68 +660,7 @@ async def owner_info(update, context):
         reply_markup=keyboard,
         disable_web_page_preview=True
     )
- # ================= GM / GN MEDIA =================
-import random
-import re
-from telegram import Update
-from telegram.ext import ContextTypes
 
-GM_GN_MEDIA = {
-    "gm": {
-        "stickers": [
-            "CAACAgIAAxkBAAIBF2QAAAAAA1",
-            "CAACAgIAAxkBAAIBF2QAAAAAA2",
-            "CAACAgIAAxkBAAIBF2QAAAAAA3",
-            "CAACAgIAAxkBAAIBF2QAAAAAA4",
-            "CAACAgIAAxkBAAIBF2QAAAAAA5",
-        ],
-        "emojis": ["☀️", "🌅", "😊", "🌸", "🌞"]
-    },
-    "gn": {
-        "stickers": [
-            "CAACAgQAAx0Ce9_hCAACaEVlwn7HeZhgwyVfKHc3WUGC_447IAACLgwAAkQwKVPtub8VAR018x4E",
-            "CAACAgIAAx0Ce9_hCAACaEplwn7dvj7G0-a1v3wlbN281RMX2QACUgwAAligOUoi7DhLVTsNsh4E",
-            "CAACAgIAAx0Ce9_hCAACaFBlwn8AAZNB9mOUvz5oAyM7CT-5pjAAAtEKAALa7NhLvbTGyDLbe1IeBA",
-            "CAACAgUAAx0CcmOuMwACldVlwn9ZHHF2-S-CuMSYabwwtVGC3AACOAkAAoqR2VYDjyK6OOr_Px4E",
-            "CAACAgIAAx0Ce9_hCAACaFVlwn-fG58GKoEmmZpVovxEj4PodAACfwwAAqozQUrt2xSTf5Ac4h4E",
-        ],
-        "emojis": ["😴", "😪", "💤", "🌙", "🌌"]
-    }
-}
-
-# ================= GM / GN HANDLER =================
-async def gm_gn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not update.message or not update.message.text:
-        return
-
-    text = update.message.text.lower().strip()
-    sender = update.effective_user.mention_html()
-
-    # 🌙 GOOD NIGHT
-    if re.fullmatch(r"(gn|good night|goodnight)", text):
-        sticker = random.choice(GM_GN_MEDIA["gn"]["stickers"])
-        emoji = random.choice(GM_GN_MEDIA["gn"]["emojis"])
-
-        await context.bot.send_sticker(update.effective_chat.id, sticker)
-        await update.message.reply_html(
-            "❖ ɢᴏᴏᴅ ɴɪɢʜᴛ ❖ sᴡᴇᴇᴛ ᴅʀᴇᴀᴍs ❖\n\n"
-            f"❍ {sender} {emoji}\n\n"
-            "❖ ɢᴏ ᴛᴏ ➥ sʟᴇᴇᴘ ᴇᴀʀʟʏ"
-        )
-        return
-
-    # ☀️ GOOD MORNING
-    if re.fullmatch(r"(gm|good morning|goodmorning)", text):
-        sticker = random.choice(GM_GN_MEDIA["gm"]["stickers"])
-        emoji = random.choice(GM_GN_MEDIA["gm"]["emojis"])
-
-        await context.bot.send_sticker(update.effective_chat.id, sticker)
-        await update.message.reply_html(
-            "❖ ɢᴏᴏᴅ ᴍᴏʀɴɪɴɢ ❖ ʜᴀᴠᴇ ᴀ ɢʀᴇᴀᴛ ᴅᴀʏ ❖\n\n"
-            f"❍ {sender} {emoji}\n\n"
-            "❖ sᴛᴀʏ ➥ ʜᴀᴘᴘʏ & ʙʟᴇssᴇᴅ"
-        )
-        return
 # ================= STIKCER ID =================
 #async def sticker_id(update, context):
 #    if update.message.sticker:
