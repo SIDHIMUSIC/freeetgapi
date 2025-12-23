@@ -553,16 +553,29 @@ async def owner_info(update, context):
         reply_markup=keyboard,
         disable_web_page_preview=True
     )
-   # ================= GM / GN DATA =================
-GM_GN_STICKERS = [
-    "CAACAgQAAx0Ce9_hCAACaEVlwn7HeZhgwyVfKHc3WUGC_447IAACLgwAAkQwKVPtub8VAR018x4E",
-    "CAACAgIAAx0Ce9_hCAACaEplwn7dvj7G0-a1v3wlbN281RMX2QACUgwAAligOUoi7DhLVTsNsh4E",
-    "CAACAgIAAx0Ce9_hCAACaFBlwn8AAZNB9mOUvz5oAyM7CT-5pjAAAtEKAALa7NhLvbTGyDLbe1IeBA",
-    "CAACAgUAAx0CcmOuMwACldVlwn9ZHHF2-S-CuMSYabwwtVGC3AACOAkAAoqR2VYDjyK6OOr_Px4E",
-    "CAACAgIAAx0Ce9_hCAACaFVlwn-fG58GKoEmmZpVovxEj4PodAACfwwAAqozQUrt2xSTf5Ac4h4E",
-]
+# ================= GM / GN MEDIA ================
 
-EMOJIS = ["😴", "😪", "💤", "🌙", "☀️", "😊", "🌸"]
+GM_MEDIA = {
+    "stickers": [
+        "CAACAgUAAxkBAAIB1mlJ6so-N7Qd29gyGX0bnkE2xpv6AAKCEAAC_k_4V3tFbOFsrqp_NgQ",
+        "CAACAgUAAxkBAAIB2GlJ6tIHaEIms5V3hZR8sh8JCzaaAALXEgACwtv4V2UgjSmAqjIkNgQ",
+        "CAACAgUAAxkBAAIB12lJ6tBEixkR877OYfnEOtYtYxPWAAI0FAACypbwV1RBw2OWBm2cNgQ",
+        "CAACAgUAAxkBAAIB2mlJ6tjnRCg6Vku3p-rPcttbzKkEAALlFAAC7PfxV3TqCOAf2ao2NgQ",
+        "CAACAgUAAxkBAAIB5GlJ8wAB8If809omWYLgQVF3xImnYAAC5xEAAg8Z-VfxLwcy-QnUBjYE",
+    ],
+    "emojis": ["☀️", "🌞", "🌅", "😊", "🌸"],
+}
+
+GN_MEDIA = {
+    "stickers": [
+        "CAACAgQAAx0Ce9_hCAACaEVlwn7HeZhgwyVfKHc3WUGC_447IAACLgwAAkQwKVPtub8VAR018x4E",
+        "CAACAgIAAx0Ce9_hCAACaEplwn7dvj7G0-a1v3wlbN281RMX2QACUgwAAligOUoi7DhLVTsNsh4E",
+        "CAACAgIAAx0Ce9_hCAACaFBlwn8AAZNB9mOUvz5oAyM7CT-5pjAAAtEKAALa7NhLvbTGyDLbe1IeBA",
+        "CAACAgUAAx0CcmOuMwACldVlwn9ZHHF2-S-CuMSYabwwtVGC3AACOAkAAoqR2VYDjyK6OOr_Px4E",
+        "CAACAgIAAx0Ce9_hCAACaFVlwn-fG58GKoEmmZpVovxEj4PodAACfwwAAqozQUrt2xSTf5Ac4h4E",
+    ],
+    "emojis": ["🌙", "😴", "😪", "💤", "🌌"],
+}
 # ================ GM / GN HANDLER =================
 async def gm_gn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
