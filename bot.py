@@ -709,49 +709,49 @@ GM_GN_MEDIA = {
     }
 }
 ###############
-async def gm_gn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not update.message or not update.message.text:
-        return
+#async def gm_gn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+ #   if not update.message or not update.message.text:
+#        return
 
-    text = update.message.text.lower().strip()
-    sender = update.effective_user.mention_html()
+#    text = update.message.text.lower().strip()
+ #   sender = update.effective_user.mention_html()
 
     # 🌙 GOOD NIGHT
-    if re.fullmatch(r"(gn|good night|goodnight)", text):
-        sticker = random.choice(GM_GN_MEDIA["gn"]["stickers"])
-        emoji = random.choice(GM_GN_MEDIA["gn"]["emojis"])
+## #   if re.fullmatch(r"(gn|good night|goodnight)", text):
+ #       sticker = random.choice(GM_GN_MEDIA["gn"]["stickers"])
+ #       emoji = random.choice(GM_GN_MEDIA["gn"]["emojis"])
 
-        await context.bot.send_sticker(update.effective_chat.id, sticker)
-        await update.message.reply_html(
-            "❖ ɢᴏᴏᴅ ɴɪɢʜᴛ ❖ sᴡᴇᴇᴛ ᴅʀᴇᴀᴍs ❖\n\n"
-            f"❍ {sender} {emoji}\n\n"
-            "❖ ɢᴏ ᴛᴏ ➥ sʟᴇᴇᴘ ᴇᴀʀʟʏ"
-        )
-        return  # ❗ yahin ruk jao
+   #     await context.bot.send_sticker(update.effective_chat.id, sticker)
+  #      await update.message.reply_html(
+  #          "❖ ɢᴏᴏᴅ ɴɪɢʜᴛ ❖ sᴡᴇᴇᴛ ᴅʀᴇᴀᴍs ❖\n\n"
+     #       f"❍ {sender} {emoji}\n\n"
+   #         "❖ ɢᴏ ᴛᴏ ➥ sʟᴇᴇᴘ ᴇᴀʀʟʏ"
+  #      )
+   #     return  # ❗ yahin ruk jao
 
     # ☀️ GOOD MORNING
-    if re.fullmatch(r"(gm|good morning|goodmorning)", text):
-        sticker = random.choice(GM_GN_MEDIA["gm"]["stickers"])
-        emoji = random.choice(GM_GN_MEDIA["gm"]["emojis"])
-
-        await context.bot.send_sticker(update.effective_chat.id, sticker)
-        await update.message.reply_html(
-            "❖ ɢᴏᴏᴅ ᴍᴏʀɴɪɴɢ ❖ ʜᴀᴠᴇ ᴀ ɢʀᴇᴀᴛ ᴅᴀʏ ❖\n\n"
-            f"❍ {sender} {emoji}\n\n"
-            "❖ sᴛᴀʏ ➥ ʜᴀᴘᴘʏ & ʙʟᴇssᴇᴅ"
-        )
-        return
+    #if re.fullmatch(r"(gm|good morning|goodmorning)", text):
+     #   sticker = random.choice(GM_GN_MEDIA["gm"]["stickers"])
+  #      emoji = random.choice(GM_GN_MEDIA["gm"]["emojis"])
+#
+      #  await context.bot.send_sticker(update.effective_chat.id, sticker)
+      #  await update.message.reply_html(
+          #  "❖ ɢᴏᴏᴅ ᴍᴏʀɴɪɴɢ ❖ ʜᴀᴠᴇ ᴀ ɢʀᴇᴀᴛ ᴅᴀʏ ❖\n\n"
+       #     f"❍ {sender} {emoji}\n\n"
+      #      "❖ sᴛᴀʏ ➥ ʜᴀᴘᴘʏ & ʙʟᴇssᴇᴅ"
+    #    )
+    #    return
 
     # ❗ GM / GN nahi hua to kuch return mat karo
     # taaki chat handler kaam kare
     
 # ================= STIKCER ID =================
-async def sticker_id(update, context):
-    if update.message.sticker:
-        await update.message.reply_text(
-            f"Sticker ID:\n<code>{update.message.sticker.file_id}</code>",
-            parse_mode="HTML"
-        )
+#async def sticker_id(update, context):
+#    if update.message.sticker:
+ #       await update.message.reply_text(
+     #       f"Sticker ID:\n<code>{update.message.sticker.file_id}</code>",
+     #       parse_mode="HTML"
+       # )
 # ================= APP =================
 app = ApplicationBuilder().token(TOKEN).build()
 
@@ -779,14 +779,14 @@ app.add_handler(CallbackQueryHandler(lang_cb, pattern="^(open_lang|hi|en)$"))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, log_message))
 
 # 4️⃣ GM / GN AUTO
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, gm_gn_handler))
+#app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, gm_gn_handler))
 
 # 5️⃣ MAIN AI CHAT — LAST
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, log_message))
 
 # 6️⃣ STICKER HANDLER (OPTIONAL)
-app.add_handler(MessageHandler(filters.Sticker.ALL, sticker_id))
+#app.add_handler(MessageHandler(filters.Sticker.ALL, sticker_id))
 
 print("🤖 BOT STARTED BY HARRY TG @SANATANI_BACHA")
 app.run_polling(drop_pending_updates=True)
