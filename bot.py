@@ -708,4 +708,8 @@ app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 #app.add_handler(MessageHandler(filters.Sticker.ALL, sticker_id))
 
 print("🤖 BOT STARTED BY HARRY TG @SANATANI_BACHA")
-app.run_polling(drop_pending_updates=True)
+
+app.run_polling(
+    drop_pending_updates=True,
+    allowed_updates=Update.ALL_TYPES
+)
