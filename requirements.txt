@@ -1,13 +1,7 @@
 python-telegram-bot==20.7
 pymongo
+dnspython
 requests
 python-dotenv
-PyGithubpython-telegram-bot==20.7
-requests
-pymongo
-flask
-python-telegram-bot==20.7
-requests
-pymongo
-dnspython
 PyGithub
+flask
