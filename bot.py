@@ -88,14 +88,32 @@ def safe_ai(messages):
     try:
         r = requests.post(
             "https://openrouter.ai/api/v1/chat/completions",
-            headers={"Authorization": f"Bearer {OPENROUTER_KEY}"},
-            json={"model": MODEL, "messages": messages},
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_KEY}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://t.me/SANATANI_BACHA",
+                "X-Title": "Telegram AI Bot"
+            },
+            json={
+                "model": MODEL,
+                "messages": messages
+            },
             timeout=60
         )
-        return r.json()["choices"][0]["message"]["content"]
-    except:
-        return "🙂 Abhi thodi dikkat aa rahi hai, baad me try karo."
 
+        data = r.json()
+
+        # 👇 DEBUG (Railway logs me dikhega)
+        print("OPENROUTER RESPONSE:", data)
+
+        if "choices" not in data:
+            return "⚠️ AI response error. Thodi der baad try karo."
+
+        return data["choices"][0]["message"]["content"]
+
+    except Exception as e:
+        print("AI ERROR:", e)
+        return "🙂 Abhi thodi dikkat aa rahi hai, baad me try karo."
 # ================= TYPING =================
 async def typing_reply(update, context, text):
     await context.bot.send_chat_action(update.effective_chat.id, "typing")
