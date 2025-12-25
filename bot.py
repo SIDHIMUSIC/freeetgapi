@@ -119,7 +119,24 @@ async def typing_reply(update, context, text):
     await context.bot.send_chat_action(update.effective_chat.id, "typing")
     await asyncio.sleep(0.4)
     await update.message.reply_text(text, parse_mode="Markdown")
+# ================= CHATGPT STYLE TYPING =================
+async def chatgpt_typing(update, context, full_text, delay=0.25):
+    chat_id = update.effective_chat.id
 
+    # show typing action
+    await context.bot.send_chat_action(chat_id, "typing")
+
+    # send empty message first
+    msg = await context.bot.send_message(chat_id, "✍️")
+
+    typed = ""
+    for word in full_text.split(" "):
+        typed += word + " "
+        try:
+            await msg.edit_text(typed)
+        except:
+            pass
+        await asyncio.sleep(delay)
 # ================= START =================
 START_IMAGES = [
     "https://graph.org/file/705cda02e63f4cb0bdb90-ce4d0ddd3a8cf38b5a.jpg",
@@ -491,23 +508,41 @@ async def unban(update, context):
     await update.message.reply_text("✅ User unbanned from group")
 
 # ================= CHAT =================
-async def chat(update, context):
+async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
 
     user = update.effective_user
-    text = update.message.text.lower()
+    text = update.message.text
+    lower_text = text.lower()
 
+    # ❌ bot-banned user
     if is_bot_banned(user.id):
         return
 
-    # 🔥 STEP 1: LOG USER MESSAGE
-    await log_message(update, context)
+    # chat================= REPLY CONDITIONS =================
 
-    # 🔥 STEP 2: AUTO MOD
-    await auto_mod(update, context)
+    BOT_USERNAME = "JULIET_MUSUCBOT"   # @ ke bina
+    BOT_NICKNAMES = ["harry", "juliet", "ai", "baby"]
 
-    # 🔥 STEP 3: SAVE USER
+    # ✅ mention check
+    mentioned = f"@{BOT_USERNAME.lower()}" in lower_text
+
+    # ✅ nickname check
+    nickname_called = any(nick in lower_text for nick in BOT_NICKNAMES)
+
+    # ✅ reply to bot check
+    replied_to_bot = (
+        update.message.reply_to_message
+        and update.message.reply_to_message.from_user
+        and update.message.reply_to_message.from_user.is_bot
+    )
+
+    # ❌ agar na mention, na nickname, na reply → bot chup
+    if not mentioned and not nickname_called and not replied_to_bot:
+        return
+
+    #chat ================= SAVE USER =================
     users.update_one(
         {"user_id": user.id},
         {"$set": {
@@ -518,42 +553,38 @@ async def chat(update, context):
         upsert=True
     )
 
-    # 🔥 STEP 4: AI SYSTEM PROMPT
-    if "joke" in text or "funny" in text or "hasi" in text:
-        system = "Tell a short funny joke in Hinglish with emojis."
-    elif "shayari" in text or "love" in text or "sad" in text:
-        system = "Write a beautiful Hindi shayari with emojis."
+    #chat ================= SYSTEM PROMPT =================
+    if "joke" in lower_text or "funny" in lower_text:
+        system = "Tell me a Hinglish joke with emojis."
+    elif "shayari" in lower_text or "love" in lower_text or "sad" in lower_text:
+        system = (
+            "Write a beautiful 8 to 10  line Hindi shayari, "
+            "deep emotional, poetic, with emojis."
+        )
     else:
-        system = f"Chat naturally with user named {user.first_name}."
+        system = "Reply shortly in Hinglish with emojis."
 
-    # 🔥 STEP 5: AI REPLY
+    # ================= AI CALL =================
     reply = safe_ai([
         {"role": "system", "content": system},
-        {"role": "user", "content": update.message.text}
+        {"role": "user", "content": text}
     ])
 
-    mention = f"[{user.first_name}](tg://user?id={user.id})"
-    final_reply = f"{mention}\n{reply}"
-    
-# 🔐 STEP 5.5: TELEGRAM TEXT LIMIT FIX (⭐ MOST IMPORTANT ⭐)
+    # ================= LENGTH SAFETY =================
     MAX_LEN = 4000
-    if len(final_reply) > MAX_LEN:
-        final_reply = final_reply[:MAX_LEN]
-        
-    # 🔥 STEP 6: SEND BOT MESSAGE (ONLY ONCE)
-    await typing_reply(update, context, final_reply)
+    if len(reply) > MAX_LEN:
+        reply = reply[:MAX_LEN]
 
-    # 🔥 STEP 7: LOG BOT REPLY (OPTIONAL)
+    # ================= CHATGPT STYLE TYPING =================
+    await chatgpt_typing(update, context, final_reply, delay=0.18)
+
+
+    # ================= LOG BOT REPLY =================
     chat_logs.insert_one({
         "user_id": user.id,
-        "name": user.first_name,
-        "username": user.username,
-        "chat_id": update.effective_chat.id,
-        "chat_type": update.effective_chat.type,
-        "text": f"[BOT_REPLY]\n{reply}",
+        "text": reply,
         "time": time.time()
     })
-
 # ================= STATS =================
 async def stats(update, context):
     if not is_owner(update.effective_user.id):
