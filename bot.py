@@ -1,5 +1,6 @@
 import traceback
 import requests
+from github_helper import suggest_changes, commit_changes
 import re 
 import os, requests, random, asyncio, time
 from pymongo import MongoClient
@@ -772,7 +773,27 @@ async def owner_info(update, context):
         reply_markup=keyboard,
         disable_web_page_preview=True
     )
+# ================= GITHUB AUTO COMMIT =================
 
+async def suggest(update, context):
+    text = suggest_changes()
+    await update.message.reply_text(
+        text,
+        parse_mode="Markdown"
+    )
+
+
+async def commit(update, context):
+    if not context.args:
+        return await update.message.reply_text(
+            "Use:\n/commit yes\n/commit no"
+        )
+
+    if context.args[0].lower() == "yes":
+        result = commit_changes()
+        await update.message.reply_text(result)
+    else:
+        await update.message.reply_text("❌ Commit cancel kar diya")
 # ================= STIKCER ID =================
 #async def sticker_id(update, context):
 #    if update.message.sticker:
@@ -798,6 +819,8 @@ app.add_handler(CommandHandler("id", id_cmd))
 app.add_handler(CommandHandler("addbadword", addbadword))
 app.add_handler(CommandHandler("removebadword", removebadword))
 app.add_handler(CommandHandler("broadcast", broadcast))
+app.add_handler(CommandHandler("suggest", suggest))
+app.add_handler(CommandHandler("commit", commit))
 
 # 2️⃣ CALLBACK BUTTONS (IMPORTANT ORDER)
 app.add_handler(CallbackQueryHandler(help_callback, pattern="^help_"))
