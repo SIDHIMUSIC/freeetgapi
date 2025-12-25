@@ -1,3 +1,4 @@
+import traceback
 import requests
 import re 
 import os, requests, random, asyncio, time
@@ -309,58 +310,53 @@ async def help_callback(update, context):
     )
 # ================= GLOBAL ERROR HANDLER =================
 async def error_handler(update, context):
-    error_text = str(context.error)
+    error_text = "".join(
+        traceback.format_exception(
+            None,
+            context.error,
+            context.error.__traceback__
+        )
+    )
 
-    # ---------------- USER KO ERROR DIKHANA ----------------
+    # ---------- USER KO SIMPLE MESSAGE ----------
     try:
         if update and update.effective_message:
             await update.effective_message.reply_text(
-                "❌ *Bot me error aa gaya*\n"
-                "Owner ko report ho gaya hai 🙂\n\n"
-                f"⚠️ `{error_text[:200]}`",
-                parse_mode="Markdown"
+                "❌ Bot me thodi dikkat aa gayi hai\n"
+                "Owner ko report bhej di gayi hai 🙂"
             )
     except:
         pass
 
-    # ---------------- LOG CHANNEL + OWNER TAG ----------------
+    # ---------- OWNER DM (FULL TRACEBACK) ----------
     try:
-        user_info = "Unknown"
-        chat_info = "Unknown"
-
-        if update and update.effective_user:
-            user_info = (
-                f"{update.effective_user.first_name} "
-                f"(`{update.effective_user.id}`)"
-            )
-
-        if update and update.effective_chat:
-            chat_info = (
-                f"`{update.effective_chat.id}` "
-                f"({update.effective_chat.type})"
-            )
-
-        log_msg = (
-            "🚨 *BOT ERROR ALERT*\n\n"
-            f"👤 *User:* {user_info}\n"
-            f"💬 *Chat:* {chat_info}\n\n"
-            f"⚠️ *Error:*\n`{error_text}`\n\n"
-            f"👑 <a href='tg://user?id={OWNER_ID}'>OWNER</a>"
+        await context.bot.send_message(
+            chat_id=OWNER_ID,
+            text=(
+                "🚨 *BOT ERROR (PRIVATE)*\n\n"
+                f"```\n{error_text[:3500]}\n```"
+            ),
+            parse_mode="Markdown"
         )
+    except Exception as e:
+        print("OWNER DM FAILED:", e)
 
+    # ---------- LOG CHANNEL ----------
+    try:
         if LOG_GROUP_ID:
             await context.bot.send_message(
                 chat_id=LOG_GROUP_ID,
-                text=log_msg,
-                parse_mode="HTML",
-                disable_web_page_preview=True
+                text=(
+                    "🚨 *BOT ERROR*\n\n"
+                    f"```\n{error_text[:3500]}\n```"
+                ),
+                parse_mode="Markdown"
             )
-
     except Exception as e:
-        print("ERROR LOGGER FAILED:", e)
+        print("LOG GROUP FAILED:", e)
 
-    # ---------------- CONSOLE / RAILWAY LOG ----------------
-    print("BOT ERROR:", context.error)
+    # ---------- CONSOLE ----------
+    print("BOT ERROR:\n", error_text)
 # ================= LANGUAGE =================
 async def language(update, context):
     kb = InlineKeyboardMarkup([
@@ -817,14 +813,18 @@ app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 
 # 6️⃣ STICKER HANDLER (OPTIONAL)
 #app.add_handler(MessageHandler(filters.Sticker.ALL, sticker_id))
+# ================= FINAL START =================
+
+# 🔥 REGISTER GLOBAL ERROR HANDLER (ONLY ONCE)
 app.add_error_handler(error_handler)
+
 print("🤖 BOT STARTED BY HARRY TG @SANATANI_BACHA")
 
+# 🚀 START BOT (ONLY ONCE, ALWAYS LAST)
 app.run_polling(
     drop_pending_updates=True,
-    allowed_updates=Update.ALL_TYPES
+    allowed_updates=Update.ALL_TYPES,
+    close_loop=False
 )
-# 🔥 ERROR HANDLER (LAST)
-app.add_error_handler(error_handler)
 
-app.run_polling(drop_pending_updates=True)
+# ================= END =================
