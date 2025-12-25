@@ -570,38 +570,29 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         system = "Reply shortly in Hinglish with emojis."
 # ================= AI CALL =================
-reply = safe_ai([
-    {"role": "system", "content": system},
-    {"role": "user", "content": text}
-])
+    reply = safe_ai([
+        {"role": "system", "content": system},
+        {"role": "user", "content": text}
+    ])
 
-# ================= LENGTH SAFETY =================
-MAX_LEN = 4000
-if len(reply) > MAX_LEN:
-    reply = reply[:MAX_LEN]
+    # ================= LENGTH SAFETY =================
+    MAX_LEN = 4000
+    if len(reply) > MAX_LEN:
+        reply = reply[:MAX_LEN]
 
-# ================= FINAL REPLY =================
-name = user.first_name or "Friend"
+    # ================= FINAL REPLY =================
+    name = user.first_name or "Friend"
     final_reply = f"*{name}*,\n{reply.strip()}"
 
-    # ✅ YAHI JAGAH PE await LAGAO
+    # ================= SEND =================
     await chatgpt_typing(update, context, final_reply)
 
+    # ================= LOG =================
     chat_logs.insert_one({
         "user_id": user.id,
         "text": final_reply,
         "time": time.time()
     })
-# ================= SEND =================
-await chatgpt_typing(update, context, final_reply)
-
-# ================= LOG =================
-chat_logs.insert_one({
-    "user_id": user.id,
-    "text": final_reply,
-    "time": time.time()
-})
- 
 # ================= STATS =================
 async def stats(update, context):
     if not is_owner(update.effective_user.id):
