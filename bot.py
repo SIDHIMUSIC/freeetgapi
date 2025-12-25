@@ -578,9 +578,15 @@ else:
 final_reply = f"*{name}*,\n{reply.strip()}"
 
     # ================= LENGTH SAFETY =================
-    MAX_LEN = 4000
-    if len(reply) > MAX_LEN:
-        reply = reply[:MAX_LEN]
+    reply = safe_ai([
+    {"role": "system", "content": system},
+    {"role": "user", "content": text}
+])
+
+# 🔐 LENGTH SAFETY (same indent as reply = ...)
+MAX_LEN = 4000
+if len(reply) > MAX_LEN:
+    reply = reply[:MAX_LEN]
 
     # ================= CHATGPT STYLE TYPING =================
     async def chatgpt_typing(update, context, text):
