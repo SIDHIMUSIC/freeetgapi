@@ -695,6 +695,7 @@ app.add_handler(CommandHandler("broadcast", broadcast))
 # 2️⃣ CALLBACK BUTTONS (IMPORTANT ORDER)
 app.add_handler(CallbackQueryHandler(help_callback, pattern="^help_"))
 app.add_handler(CallbackQueryHandler(lang_cb, pattern="^(open_lang|hi|en)$"))
+#app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 # 3️⃣ LOGS — SABSE PEHLE
 #app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, log_message))
