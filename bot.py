@@ -569,7 +569,8 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         {"role": "system", "content": system},
         {"role": "user", "content": text}
     ])
-
+# ================= FINAL REPLY =================
+    final_reply = reply.strip()
     # ================= LENGTH SAFETY =================
     MAX_LEN = 4000
     if len(reply) > MAX_LEN:
