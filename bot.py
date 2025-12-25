@@ -516,7 +516,12 @@ async def chat(update, context):
 
     mention = f"[{user.first_name}](tg://user?id={user.id})"
     final_reply = f"{mention}\n{reply}"
-
+    
+# 🔐 STEP 5.5: TELEGRAM TEXT LIMIT FIX (⭐ MOST IMPORTANT ⭐)
+    MAX_LEN = 4000
+    if len(final_reply) > MAX_LEN:
+        final_reply = final_reply[:MAX_LEN]
+        
     # 🔥 STEP 6: SEND BOT MESSAGE (ONLY ONCE)
     await typing_reply(update, context, final_reply)
 
