@@ -96,18 +96,18 @@ def safe_ai(messages):
             },
             json={
                 "model": MODEL,
-                "messages": messages
+                "messages": messages,
+                "max_tokens": 800,   # ⭐ MOST IMPORTANT FIX
+                "temperature": 0.7
             },
             timeout=60
         )
 
         data = r.json()
-
-        # 👇 DEBUG (Railway logs me dikhega)
         print("OPENROUTER RESPONSE:", data)
 
         if "choices" not in data:
-            return "⚠️ AI response error. Thodi der baad try karo."
+            return "⚠️ AI busy hai, thodi der baad try karo."
 
         return data["choices"][0]["message"]["content"]
 
