@@ -506,7 +506,19 @@ async def unban(update, context):
     uid = int(context.args[0])
     await context.bot.unban_chat_member(update.effective_chat.id, uid)
     await update.message.reply_text("✅ User unbanned from group")
+# ================= CHATGPT STYLE TYPING =================
+async def chatgpt_typing(update, context, text):
+    chat_id = update.effective_chat.id
 
+    # fast typing (ChatGPT feel)
+    await context.bot.send_chat_action(chat_id, "typing")
+    await asyncio.sleep(0.3)
+
+    await update.message.reply_text(
+        text,
+        parse_mode="Markdown",
+        reply_to_message_id=update.message.message_id
+    )
 # ================= CHAT =================
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
@@ -520,31 +532,22 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if is_bot_banned(user.id):
         return
 
-    # chat================= REPLY CONDITIONS =================
-
     BOT_USERNAME = "JULIET_MUSUCBOT"   # @ ke bina
     BOT_NICKNAMES = ["harry", "juliet", "ai", "baby"]
 
-    # ✅ mention check
-    mentioned = f"@{BOT_USERNAME.lower()}" in lower_text
+    # 🔹 PRIVATE CHAT → hamesha reply
+    if update.effective_chat.type != "private":
+        mentioned = f"@{BOT_USERNAME.lower()}" in lower_text
+        nickname_called = any(nick in lower_text for nick in BOT_NICKNAMES)
+        replied_to_bot = (
+            update.message.reply_to_message
+            and update.message.reply_to_message.from_user
+            and update.message.reply_to_message.from_user.is_bot
+        )
 
-    # ✅ nickname check
-    nickname_called = any(nick in lower_text for nick in BOT_NICKNAMES)
-
-    # ✅ reply to bot check
-    replied_to_bot = (
-        update.message.reply_to_message
-        and update.message.reply_to_message.from_user
-        and update.message.reply_to_message.from_user.is_bot
-    )
-
-    # ✅ private chat me hamesha reply
-if update.effective_chat.type == "private":
-    pass
-else:
-    # group me sirf mention / nickname / reply
-    if not mentioned and not nickname_called and not replied_to_bot:
-        return
+        # ❌ group me bina call kiye reply nahi
+        if not mentioned and not nickname_called and not replied_to_bot:
+            return
 
     #chat ================= SAVE USER =================
     users.update_one(
@@ -567,49 +570,31 @@ else:
         )
     else:
         system = "Reply shortly in Hinglish with emojis."
-
-    # ================= AI CALL =================
-    reply = safe_ai([
-        {"role": "system", "content": system},
-        {"role": "user", "content": text}
-    ])
-# ================= FINAL REPLY =================
-    name = user.first_name or "Friend"
-final_reply = f"*{name}*,\n{reply.strip()}"
-
-    # ================= LENGTH SAFETY =================
-    reply = safe_ai([
+# ================= AI CALL =================
+reply = safe_ai([
     {"role": "system", "content": system},
     {"role": "user", "content": text}
 ])
 
-# 🔐 LENGTH SAFETY (same indent as reply = ...)
+# ================= LENGTH SAFETY =================
 MAX_LEN = 4000
 if len(reply) > MAX_LEN:
     reply = reply[:MAX_LEN]
 
-    # ================= CHATGPT STYLE TYPING =================
-    async def chatgpt_typing(update, context, text):
-    chat_id = update.effective_chat.id
+# ================= FINAL REPLY =================
+name = user.first_name or "Friend"
+final_reply = f"*{name}*,\n{reply.strip()}"
 
-    # sirf ek short typing
-    await context.bot.send_chat_action(chat_id, "typing")
-    await asyncio.sleep(0.6)   # fixed fast delay
+# ================= SEND =================
+await chatgpt_typing(update, context, final_reply)
 
-    # reply TO SAME MESSAGE (important)
-    await update.message.reply_text(
-        text,
-        parse_mode="Markdown",
-        reply_to_message_id=update.message.message_id
-    )
-
-
-    # ================= LOG BOT REPLY =================
-    chat_logs.insert_one({
-        "user_id": user.id,
-        "text": reply,
-        "time": time.time()
-    })
+# ================= LOG =================
+chat_logs.insert_one({
+    "user_id": user.id,
+    "text": final_reply,
+    "time": time.time()
+})
+ 
 # ================= STATS =================
 async def stats(update, context):
     if not is_owner(update.effective_user.id):
