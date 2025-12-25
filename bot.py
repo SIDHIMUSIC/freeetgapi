@@ -700,8 +700,8 @@ app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, log_message))
 
 # 5️⃣ MAIN AI CHAT — LAST
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, log_message))
+#app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
+#app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, log_message))
 
 # 6️⃣ STICKER HANDLER (OPTIONAL)
 #app.add_handler(MessageHandler(filters.Sticker.ALL, sticker_id))
