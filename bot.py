@@ -31,7 +31,7 @@ ban_logs = db.ban_logs
 spam = db.spam
 chat_logs = db.chat_logs
 badwords = db.badwords
-
+codes = db.codes
 # ================= HELPERS =================
 def is_owner(uid):
     return uid == OWNER_ID
@@ -47,7 +47,24 @@ async def is_admin(update, context):
         update.effective_user.id
     )
     return m.status in ("administrator", "creator")
+# ================= SAVE CODE / TEXT =================
+async def save_code(update, context):
+    if not context.args:
+        return await update.message.reply_text(
+            "❌ Use like:\n/save <your code or text>"
+        )
 
+    code_text = " ".join(context.args)
+
+    codes.insert_one({
+        "user_id": update.effective_user.id,
+        "code": code_text,
+        "time": time.time()
+    })
+
+    await update.message.reply_text(
+        "✅ Code saved successfully 🧠"
+    )
 # ================= LOG EVERY MESSAGE =================
 async def log_message(update, context):
     if not update.message or not update.message.text:
@@ -807,6 +824,7 @@ app = ApplicationBuilder().token(TOKEN).build()
 # 1️⃣ COMMANDS
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("help", help_cmd))
+app.add_handler(CommandHandler("save", save_code))
 app.add_handler(CommandHandler("language", language))
 app.add_handler(CommandHandler("image", image_cmd))
 app.add_handler(CommandHandler("owner", owner_info))
