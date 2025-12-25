@@ -510,9 +510,8 @@ async def unban(update, context):
 async def chatgpt_typing(update, context, text):
     chat_id = update.effective_chat.id
 
-    # fast typing (ChatGPT feel)
     await context.bot.send_chat_action(chat_id, "typing")
-    await asyncio.sleep(0.3)
+    await asyncio.sleep(0.3)  # fast & smooth
 
     await update.message.reply_text(
         text,
@@ -583,8 +582,16 @@ if len(reply) > MAX_LEN:
 
 # ================= FINAL REPLY =================
 name = user.first_name or "Friend"
-final_reply = f"*{name}*,\n{reply.strip()}"
+    final_reply = f"*{name}*,\n{reply.strip()}"
 
+    # ✅ YAHI JAGAH PE await LAGAO
+    await chatgpt_typing(update, context, final_reply)
+
+    chat_logs.insert_one({
+        "user_id": user.id,
+        "text": final_reply,
+        "time": time.time()
+    })
 # ================= SEND =================
 await chatgpt_typing(update, context, final_reply)
 
