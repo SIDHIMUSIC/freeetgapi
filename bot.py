@@ -538,7 +538,11 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         and update.message.reply_to_message.from_user.is_bot
     )
 
-    # ❌ agar na mention, na nickname, na reply → bot chup
+    # ✅ private chat me hamesha reply
+if update.effective_chat.type == "private":
+    pass
+else:
+    # group me sirf mention / nickname / reply
     if not mentioned and not nickname_called and not replied_to_bot:
         return
 
@@ -570,14 +574,28 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         {"role": "user", "content": text}
     ])
 # ================= FINAL REPLY =================
-    final_reply = reply.strip()
+    name = user.first_name or "Friend"
+final_reply = f"*{name}*,\n{reply.strip()}"
+
     # ================= LENGTH SAFETY =================
     MAX_LEN = 4000
     if len(reply) > MAX_LEN:
         reply = reply[:MAX_LEN]
 
     # ================= CHATGPT STYLE TYPING =================
-    await chatgpt_typing(update, context, final_reply, delay=0.18)
+    async def chatgpt_typing(update, context, text):
+    chat_id = update.effective_chat.id
+
+    # sirf ek short typing
+    await context.bot.send_chat_action(chat_id, "typing")
+    await asyncio.sleep(0.6)   # fixed fast delay
+
+    # reply TO SAME MESSAGE (important)
+    await update.message.reply_text(
+        text,
+        parse_mode="Markdown",
+        reply_to_message_id=update.message.message_id
+    )
 
 
     # ================= LOG BOT REPLY =================
