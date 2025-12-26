@@ -153,6 +153,22 @@ async def commit(update, context):
         await update.message.reply_text(result)
     else:
         await update.message.reply_text("❌ Commit cancel kar diya")
+        # ================= ROLLBACK =================
+async def rollback(update, context):
+    if not is_owner(update.effective_user.id):
+        return await update.message.reply_text("❌ Owner only")
+
+    try:
+        result = trigger_rollback()
+        await update.message.reply_text(
+            f"🔁 *Rollback Triggered*\n\n{result}",
+            parse_mode="Markdown"
+        )
+    except Exception as e:
+        await update.message.reply_text(
+            f"❌ Rollback failed:\n`{e}`",
+            parse_mode="Markdown"
+        )
 # ================= CLEAR SAVED CODES =================
 async def clearcodes(update, context):
     if not is_owner(update.effective_user.id):
@@ -979,6 +995,7 @@ app.add_handler(CommandHandler("clearcodes", clearcodes))
 app.add_handler(CommandHandler("delcode", delcode))
 app.add_handler(CommandHandler("suggest", suggest))
 app.add_handler(CommandHandler("commit", commit))
+app.add_handler(CommandHandler("rollback", rollback))  # 👈 YAHI
 app.add_handler(CommandHandler("suggest", suggest))
 app.add_handler(
     CallbackQueryHandler(fix_confirm_callback, pattern="^fix_")
