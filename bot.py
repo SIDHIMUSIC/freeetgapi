@@ -1061,6 +1061,8 @@ app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 # 6️⃣ STICKER HANDLER (OPTIONAL)
 #app.add_handler(MessageHandler(filters.Sticker.ALL, sticker_id))
 # ================= FINAL START =================
+app.add_handler(CommandHandler("truth", truth))
+app.add_handler(CommandHandler("dare", dare))
 
 # 🔥 REGISTER GLOBAL ERROR HANDLER (ONLY ONCE)
 app.add_error_handler(error_handler)
