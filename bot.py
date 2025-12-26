@@ -1,3 +1,4 @@
+import random
 import traceback
 import requests
 from github_helper import suggest_changes, commit_changes
