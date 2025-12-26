@@ -1022,7 +1022,21 @@ app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 # 🔥 REGISTER GLOBAL ERROR HANDLER (ONLY ONCE)
 app.add_error_handler(error_handler)
 
-print("🤖 BOT STARTED BY HARRY TG @SANATANI_BACHA")
+print("""
+\033[96m
+██╗  ██╗ █████╗ ██████╗ ██████╗ ██╗   ██╗
+██║  ██║██╔══██╗██╔══██╗██╔══██╗╚██╗ ██╔╝
+███████║███████║██████╔╝██████╔╝ ╚████╔╝ 
+██╔══██║██╔══██║██╔══██╗██╔══██╗  ╚██╔╝  
+██║  ██║██║  ██║██║  ██║██║  ██║   ██║   
+╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   
+\033[0m
+\033[95m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👑  HARRY • NEON AI BOT
+📢  Telegram : @SANATANI_BACHA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+\033[0m
+""")
 
 # 🚀 START BOT (ONLY ONCE, ALWAYS LAST)
 app.run_polling(
