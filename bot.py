@@ -325,10 +325,21 @@ HELP_TEXT = (
     "/ban\n"
     "/unban\n\n"
 
-    "<b>Owner</b>\n"
+    "<b>👑 Owner Commands</b>\n"
     "/botban &lt;id&gt;\n"
     "/botunban &lt;id&gt;\n"
-    "/stats\n\n"
+    "/save – Save code or note\n"
+    "/mycodes – View saved codes\n"
+    "/delcode – Delete specific code\n"
+    "/clearcodes – Delete all saved codes\n"
+    "/suggest – AI code review\n"
+    "/commit yes – GitHub commit\n"
+    "/botban – Global ban\n"
+    "/botunban – Global unban\n"
+    "/addbadword – Add filter word\n"
+    "/removebadword – Remove filter\n"
+    "/stats – Bot statistics\n"
+    "/broadcast – Send message to all\n"
 
     "<b>System</b>\n"
     "❖ Tag reply\n"
@@ -342,27 +353,33 @@ HELP_TEXT = (
 
     "👇 <i>Use buttons below for category-wise help</i>"
 )
-
 # /help command
 async def help_cmd(update, context):
-    keyboard = InlineKeyboardMarkup(
+    buttons = [
         [
-            [
-                InlineKeyboardButton("📌 Basic", callback_data="help_basic"),
-                InlineKeyboardButton("🖼 AI Image", callback_data="help_image"),
-            ],
-            [
-                InlineKeyboardButton("🤖 Auto", callback_data="help_auto"),
-                InlineKeyboardButton("🛡 Admin", callback_data="help_admin"),
-            ],
-            [
-                InlineKeyboardButton("👑 Owner", callback_data="help_owner"),
-                InlineKeyboardButton("❌ Close", callback_data="help_close"),
-            ],
-        ]
+            InlineKeyboardButton("📌 Basic", callback_data="help_basic"),
+            InlineKeyboardButton("🖼 AI Image", callback_data="help_image"),
+        ],
+        [
+            InlineKeyboardButton("🤖 Auto", callback_data="help_auto"),
+            InlineKeyboardButton("🛡 Admin", callback_data="help_admin"),
+        ],
+    ]
+
+    # 👑 Owner button sirf OWNER ko dikhe
+    if is_owner(update.effective_user.id):
+        buttons.append(
+            [InlineKeyboardButton("👑 Owner", callback_data="help_owner")]
+        )
+
+    # ❌ Close button sabke liye
+    buttons.append(
+        [InlineKeyboardButton("❌ Close", callback_data="help_close")]
     )
 
-    # ✅ ALWAYS send a NEW message (photo-safe)
+    keyboard = InlineKeyboardMarkup(buttons)
+
+    # ✅ command + callback dono ke liye safe
     if update.callback_query:
         await update.callback_query.message.reply_text(
             HELP_TEXT,
@@ -378,13 +395,14 @@ async def help_cmd(update, context):
             disable_web_page_preview=True
         )
 
+
 # help buttons callback
 async def help_callback(update, context):
     query = update.callback_query
     await query.answer()
     data = query.data
 
-    if data == "help_basic":
+    if data== "help_basic":
         text = (
             "📌 <b>BASIC COMMANDS</b>\n\n"
             "/start\n/help\n/id\n/language"
@@ -412,12 +430,24 @@ async def help_callback(update, context):
         )
 
     elif data == "help_owner":
-        text = (
-            "👑 <b>OWNER COMMANDS</b>\n\n"
-            "/botban &lt;id&gt;\n"
-            "/botunban &lt;id&gt;\n"
-            "/stats"
-        )
+    if not is_owner(update.effective_user.id):
+        return await query.message.reply_text("❌ Owner only section")
+
+    text = (
+        "👑 <b>OWNER COMMANDS</b>\n\n"
+        "/save – Save code or note\n"
+        "/mycodes – View saved codes\n"
+        "/delcode – Delete code\n"
+        "/clearcodes – Clear all codes\n"
+        "/suggest – AI review\n"
+        "/commit yes – GitHub commit\n"
+        "/botban – Global ban\n"
+        "/botunban – Global unban\n"
+        "/addbadword – Add filter\n"
+        "/removebadword – Remove filter\n"
+        "/stats – Bot stats\n"
+        "/broadcast – Broadcast message"
+    )
 
     elif data == "help_back":
         await help_cmd(update, context)
@@ -625,6 +655,11 @@ async def removebadword(update, context):
 # ================= BAN SYSTEM =================
 
 # 🔹 OWNER – GLOBAL BOT BAN
+async def save_code(update, context):
+    if not is_owner(update.effective_user.id):
+        return await update.message.reply_text("❌ Owner only command")
+
+    # rest code...
 async def botban(update, context):
     if not is_owner(update.effective_user.id):
         return
@@ -644,6 +679,7 @@ async def botban(update, context):
 
 
 # 🔹 OWNER – GLOBAL BOT UNBAN
+
 async def botunban(update, context):
     if not is_owner(update.effective_user.id):
         return
