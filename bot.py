@@ -839,6 +839,20 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # ================= FINAL REPLY =================
     name = user.first_name or "Friend"
     final_reply = f"*{name}*,\n{reply.strip()}"
+      # 👇👇 BIRTHDAY WALA CODE YAHAN HAI 👇👇
+    import time
+    if time.strftime("%d-%m") == "27-12":
+        # Yahan 'Babu' ki jagah tum apna koi bhi naam likh sakte ho
+        # OWNER_ID global variable se tumhari profile link ban jayegi
+        owner_mention = f"[Babu](tg://user?id={OWNER_ID})"
+        
+        final_reply += (
+            f"\n\n───────────────\n"
+            f"🎂 **HAPPY BIRTHDAY {owner_mention} Sir!** 🥳\n"
+            f"Aaj mere Boss ka Janamdin hai! Sab log wish karo! 🎉🎈\n"
+            f"───────────────"
+    # 👆👆 
+
 
     # ================= SEND =================
     await chatgpt_typing(update, context, final_reply)
