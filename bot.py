@@ -823,14 +823,20 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     {"role": "system", "content": system + memory_text},
     {"role": "user", "content": text}
 ])
-# ================= 🔥 MEMORY LOAD (STEP 4) =================
-    memory = get_memory(user.id)   # 🔥 ADDED
+# ================= MEMORY =================
+memory = get_memory(user.id)
 
-    memory_text = ""               # 🔥 ADDED
-    if memory:                     # 🔥 ADDED
-        memory_text = "\n\nUser memory:\n"
-        for k, v in memory.items():
-            memory_text += f"- {k}: {v}\n"
+memory_text = ""
+
+if memory:
+    memory_text = "\nUser memory:\n"
+    for k, v in memory.items():
+        memory_text += f"- {k}: {v}\n"
+
+reply = safe_ai([
+    {"role": "system", "content": system + memory_text},
+    {"role": "user", "content": text}
+])
      # ================= FINAL REPLY =================
     name = user.first_name or "Friend"
     final_reply = f"*{name}*,\n{reply.strip()}"
