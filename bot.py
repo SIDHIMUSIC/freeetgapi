@@ -780,10 +780,9 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if is_bot_banned(user.id):
         return
 
-    BOT_USERNAME = "JULIET_MUSUCBOT"   # @ ke bina
+    BOT_USERNAME = "JULIET_MUSUCBOT"
     BOT_NICKNAMES = ["harry", "juliet", "ai", "baby"]
 
-    # 🔹 PRIVATE CHAT → hamesha reply
     if update.effective_chat.type != "private":
         mentioned = f"@{BOT_USERNAME.lower()}" in lower_text
         nickname_called = any(nick in lower_text for nick in BOT_NICKNAMES)
@@ -792,12 +791,10 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
             and update.message.reply_to_message.from_user
             and update.message.reply_to_message.from_user.is_bot
         )
-
-        # ❌ group me bina call kiye reply nahi
         if not mentioned and not nickname_called and not replied_to_bot:
             return
 
-    #chat ================= SAVE USER =================
+    # ✅ USER SAVE
     users.update_one(
         {"user_id": user.id},
         {"$set": {
@@ -808,21 +805,28 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         upsert=True
     )
 
-    #chat ================= SYSTEM PROMPT =================
-    if "joke" in lower_text or "funny" in lower_text:
-        system = "Tell me a Hinglish joke with emojis."
-    elif "shayari" in lower_text or "love" in lower_text or "sad" in lower_text:
-        system = (
-            "Write a beautiful 8 to 10  line Hindi shayari, "
-            "deep emotional, poetic, with emojis."
-        )
-    else:
-        system = "Reply shortly in Hinglish with emojis."
-# ================= AI CALL =================
+    # ✅ SYSTEM PROMPT
+    system = "Reply shortly in Hinglish with emojis."
+
+    # ================= MEMORY =================
+    memory = get_memory(user.id)
+    memory_text = ""
+
+    if memory:
+        memory_text = "\nUser memory:\n"
+        for k, v in memory.items():
+            memory_text += f"- {k}: {v}\n"
+
+    # ================= AI CALL =================
     reply = safe_ai([
-    {"role": "system", "content": system + memory_text},
-    {"role": "user", "content": text}
-])
+        {"role": "system", "content": system + memory_text},
+        {"role": "user", "content": text}
+    ])
+
+    name = user.first_name or "Friend"
+    final_reply = f"*{name}*,\n{reply.strip()}"
+
+    await update.message.reply_text(final_reply, parse_mode="Markdown")
 # ================= MEMORY =================
 memory = get_memory(user.id)
 
