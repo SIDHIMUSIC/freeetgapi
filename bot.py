@@ -683,11 +683,6 @@ async def removebadword(update, context):
 # ================= BAN SYSTEM =================
 
 # 🔹 OWNER – GLOBAL BOT BAN
-async def save_code(update, context):
-    if not is_owner(update.effective_user.id):
-        return await update.message.reply_text("❌ Owner only command")
-
-    # rest code...
 async def botban(update, context):
     if not is_owner(update.effective_user.id):
         return
