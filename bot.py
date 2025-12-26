@@ -924,7 +924,10 @@ app.add_handler(CommandHandler("clearcodes", clearcodes))
 app.add_handler(CommandHandler("delcode", delcode))
 app.add_handler(CommandHandler("suggest", suggest))
 app.add_handler(CommandHandler("commit", commit))
-
+app.add_handler(CommandHandler("suggest", suggest))
+app.add_handler(
+    CallbackQueryHandler(fix_confirm_callback, pattern="^fix_")
+        )
 
 # 2️⃣ CALLBACK BUTTONS (IMPORTANT ORDER)
 app.add_handler(CallbackQueryHandler(help_callback, pattern="^help_"))
