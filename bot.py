@@ -430,7 +430,7 @@ async def help_callback(update, context):
         )
 
     elif data == "help_owner":
-    if not is_owner(update.effective_user.id):
+    if not is_owner(query.from_user.id):
         return await query.message.reply_text("❌ Owner only section")
 
     text = (
