@@ -394,15 +394,13 @@ async def help_cmd(update, context):
             reply_markup=keyboard,
             disable_web_page_preview=True
         )
-
-
 # help buttons callback
 async def help_callback(update, context):
     query = update.callback_query
     await query.answer()
     data = query.data
 
-    if data== "help_basic":
+    if data == "help_basic":
         text = (
             "📌 <b>BASIC COMMANDS</b>\n\n"
             "/start\n/help\n/id\n/language"
@@ -430,24 +428,26 @@ async def help_callback(update, context):
         )
 
     elif data == "help_owner":
-    if not is_owner(query.from_user.id):
-        return await query.message.reply_text("❌ Owner only section")
+        # 🔐 OWNER CHECK
+        if not is_owner(query.from_user.id):
+            await query.message.reply_text("❌ Owner only section")
+            return
 
-    text = (
-        "👑 <b>OWNER COMMANDS</b>\n\n"
-        "/save – Save code or note\n"
-        "/mycodes – View saved codes\n"
-        "/delcode – Delete code\n"
-        "/clearcodes – Clear all codes\n"
-        "/suggest – AI review\n"
-        "/commit yes – GitHub commit\n"
-        "/botban – Global ban\n"
-        "/botunban – Global unban\n"
-        "/addbadword – Add filter\n"
-        "/removebadword – Remove filter\n"
-        "/stats – Bot stats\n"
-        "/broadcast – Broadcast message"
-    )
+        text = (
+            "👑 <b>OWNER COMMANDS</b>\n\n"
+            "/save – Save code or note\n"
+            "/mycodes – View saved codes\n"
+            "/delcode – Delete code\n"
+            "/clearcodes – Clear all codes\n"
+            "/suggest – AI review\n"
+            "/commit yes – GitHub commit\n"
+            "/botban – Global ban\n"
+            "/botunban – Global unban\n"
+            "/addbadword – Add filter\n"
+            "/removebadword – Remove filter\n"
+            "/stats – Bot stats\n"
+            "/broadcast – Broadcast message"
+        )
 
     elif data == "help_back":
         await help_cmd(update, context)
@@ -455,6 +455,9 @@ async def help_callback(update, context):
 
     elif data == "help_close":
         await query.message.delete()
+        return
+
+    else:
         return
 
     keyboard = InlineKeyboardMarkup(
@@ -466,7 +469,6 @@ async def help_callback(update, context):
         ]
     )
 
-    # ✅ ALWAYS SEND NEW MESSAGE (NO edit_text)
     await query.message.reply_text(
         text,
         parse_mode="HTML",
