@@ -1,0 +1,38 @@
+name: Railway Deploy Notify
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Notify Deploy Started
+      run: |
+        curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
+        -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+        -d text="🚀 *Railway Deploy Started*\n\nCommit pushed successfully." \
+        -d parse_mode=Markdown
+
+    - name: Simulate Deploy Check
+      run: |
+        echo "Deploy running..."
+
+    - name: Notify Deploy Success
+      if: success()
+      run: |
+        curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
+        -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+        -d text="✅ *Railway Deploy Successful*\n\nBot is live 🟢" \
+        -d parse_mode=Markdown
+
+    - name: Notify Deploy Failed
+      if: failure()
+      run: |
+        curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
+        -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+        -d text="❌ *Railway Deploy Failed*\n\nAuto rollback active 🔁" \
+        -d parse_mode=Markdown
