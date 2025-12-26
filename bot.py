@@ -1014,6 +1014,25 @@ async def owner_info(update, context):
      #       f"Sticker ID:\n<code>{update.message.sticker.file_id}</code>",
      #       parse_mode="HTML"
        # )
+######======truth#####
+import random
+
+async def truth(update, context):
+    questions = [
+        "Tumhara sabse gehra raaz kya hai? 🤫",
+        "Last time kab roye the aur kyu? 😢",
+        "Apne crush ka naam batao! ❤️"
+    ]
+    await update.message.reply_text(f"🤥 **Truth:** {random.choice(questions)}", parse_mode="Markdown")
+
+async def dare(update, context):
+    tasks = [
+        "Apni sabse funny photo bhejo group me! 😂",
+        "Voice note me gaana gaa ke bhejo! 🎤",
+        "Kisi anjaan number ko call karke prank karo! 📞"
+    ]
+    await update.message.reply_text(f"😈 **Dare:** {random.choice(tasks)}", parse_mode="Markdown")
+    
 # ================= APP =================
 app = ApplicationBuilder().token(TOKEN).build()
 
