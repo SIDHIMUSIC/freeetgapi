@@ -1,0 +1,53 @@
+name: Deploy to Railway
+
+on:
+  push:
+    branches: [ main ]
+
+  workflow_dispatch:
+    inputs:
+      rollback:
+        description: "Rollback to previous commit"
+        required: false
+        default: "false"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # 🔁 ROLLBACK STEP (sirf jab /rollback se call ho)
+      - name: Rollback logic
+        if: github.event.inputs.rollback == 'true'
+        run: |
+          echo "🔁 Rolling back to previous commit"
+          git fetch --all
+          git reset --hard HEAD~1
+
+      # 🚀 NORMAL DEPLOY (push ya rollback dono me chalega)
+      - name: Deploy to Railway
+        run: |
+          echo "🚀 Deploying to Railway..."
+          # yahan tumhara actual deploy command hoga
+          # railway up / railway run / docker etc
+
+      # ✅ SUCCESS MESSAGE
+      - name: Notify Telegram Success
+        if: success()
+        run: |
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage \
+          -d chat_id=${{ secrets.TG_CHAT_ID }} \
+          -d text="✅ *Deploy Successful*\nRepo: ${{ github.repository }}\nCommit: ${{ github.sha }}" \
+          -d parse_mode=Markdown
+
+      # ❌ FAILURE MESSAGE
+      - name: Notify Telegram Failure
+        if: failure()
+        run: |
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage \
+          -d chat_id=${{ secrets.TG_CHAT_ID }} \
+          -d text="❌ *Deploy Failed*\nRepo: ${{ github.repository }}\nCommit: ${{ github.sha }}" \
+          -d parse_mode=Markdown
