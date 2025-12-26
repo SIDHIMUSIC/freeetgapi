@@ -842,16 +842,11 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
       # 👇👇 BIRTHDAY WALA CODE YAHAN HAI 👇👇
     import time
     if time.strftime("%d-%m") == "27-12":
-        # Yahan 'Babu' ki jagah tum apna koi bhi naam likh sakte ho
-        # OWNER_ID global variable se tumhari profile link ban jayegi
         owner_mention = f"[Babu](tg://user?id={OWNER_ID})"
-        
-        final_reply += (
-            f"\n\n───────────────\n"
-            f"🎂 **HAPPY BIRTHDAY {owner_mention} Sir!** 🥳\n"
-            f"Aaj mere Boss ka Janamdin hai! Sab log wish karo! 🎉🎈\n"
-            f"───────────────"
-    # 👆👆 
+        # Niche wali line ko dhyan se copy karna (Ye simple tarika hai)
+        final_reply += f"\n\n───────────────\n🎂 **HAPPY BIRTHDAY {owner_mention} Sir!** 🥳\nAaj mere Boss ka Janamdin hai! Sab log wish karo! 🎉🎈\n───────────────"
+    # 👆👆 YAHAN KHATAM 👆👆
+    
 
 
     # ================= SEND =================
