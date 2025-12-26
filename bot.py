@@ -1,6 +1,7 @@
 import traceback
 import requests
 from github_helper import suggest_changes, commit_changes
+from github_helper import trigger_rollback
 import re 
 import os, requests, random, asyncio, time
 from pymongo import MongoClient
