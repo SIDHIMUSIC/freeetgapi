@@ -143,6 +143,28 @@ async def clearcodes(update, context):
 
     codes.delete_many({"user_id": update.effective_user.id})
     await update.message.reply_text("🧹 All saved codes cleared")
+    # ================= DELETE CODE BY NUMBER =================
+async def delcode(update, context):
+    user_id = update.effective_user.id
+
+    if not context.args or not context.args[0].isdigit():
+        return await update.message.reply_text(
+            "❌ Use:\n/delcode <number>"
+        )
+
+    index = int(context.args[0]) - 1
+
+    data = list(
+        codes.find({"user_id": user_id})
+        .sort("time", -1)
+    )
+
+    if index < 0 or index >= len(data):
+        return await update.message.reply_text("❌ Invalid code number")
+
+    codes.delete_one({"_id": data[index]["_id"]})
+
+    await update.message.reply_text("🗑️ Code delete ho gaya ✅")
 # ================= LOG EVERY MESSAGE =================
 async def log_message(update, context):
     if not update.message or not update.message.text:
@@ -899,6 +921,7 @@ app.add_handler(CommandHandler("broadcast", broadcast))
 app.add_handler(CommandHandler("save", save_code))
 app.add_handler(CommandHandler("mycodes", mycodes))
 app.add_handler(CommandHandler("clearcodes", clearcodes))
+app.add_handler(CommandHandler("delcode", delcode))
 app.add_handler(CommandHandler("suggest", suggest))
 app.add_handler(CommandHandler("commit", commit))
 
