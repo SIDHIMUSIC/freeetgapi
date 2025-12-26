@@ -73,6 +73,14 @@ async def is_admin(update, context):
     )
     return m.status in ("administrator", "creator")
 
+
+# 🧠 MEMORY HELPER — YAHI ADD KARO
+def get_memory(user_id):
+    user = users.find_one({"user_id": user_id})
+    if user and "memory" in user:
+        return user["memory"]
+    return {}
+
     # ================= FIX CONFIRM CALLBACK =================  👈 YAHI
 async def fix_confirm_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -908,7 +916,35 @@ async def broadcast(update, context):
         f"📨 Sent: {sent}\n"
         f"❌ Failed: {failed}"
     )
-    
+    # ================= TEACH BOT (OWNER ONLY) =================
+async def teach(update, context):
+    # ❌ only owner
+    if not is_owner(update.effective_user.id):
+        return await update.message.reply_text("❌ Owner only command")
+
+    # ❌ format check
+    if not context.args or len(context.args) < 2:
+        return await update.message.reply_text(
+            "Use:\n"
+            "/teach <key> <value>\n\n"
+            "Example:\n"
+            "/teach nickname Ashu\n"
+            "/teach reply_style friendly"
+        )
+
+    key = context.args[0].lower()
+    value = " ".join(context.args[1:])
+
+    users.update_one(
+        {"user_id": update.effective_user.id},
+        {"$set": {f"memory.{key}": value}},
+        upsert=True
+    )
+
+    await update.message.reply_text(
+        f"🧠 Sikha diya!\n\n"
+        f"{key} → {value}"
+    )
 # ================= OWNER =================
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -990,6 +1026,7 @@ app.add_handler(CommandHandler("id", id_cmd))
 app.add_handler(CommandHandler("addbadword", addbadword))
 app.add_handler(CommandHandler("removebadword", removebadword))
 app.add_handler(CommandHandler("broadcast", broadcast))
+app.add_handler(CommandHandler("teach", teach))
 # ================= CODE STORAGE / AI REVIEW =================
 app.add_handler(CommandHandler("save", save_code))   # 👈 MUST
 app.add_handler(CommandHandler("mycodes", mycodes))
