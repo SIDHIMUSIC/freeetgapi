@@ -991,7 +991,7 @@ app.add_handler(CommandHandler("addbadword", addbadword))
 app.add_handler(CommandHandler("removebadword", removebadword))
 app.add_handler(CommandHandler("broadcast", broadcast))
 # ================= CODE STORAGE / AI REVIEW =================
-
+app.add_handler(CommandHandler("save", save_code))   # 👈 MUST
 app.add_handler(CommandHandler("mycodes", mycodes))
 app.add_handler(CommandHandler("clearcodes", clearcodes))
 app.add_handler(CommandHandler("delcode", delcode))
