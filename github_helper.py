@@ -52,3 +52,30 @@ def rollback_last_commit(repo):
     repo.git.reset('--hard', 'HEAD~1')
     origin = repo.remote(name='origin')
     origin.push(force=True)
+from github import Github
+import os
+import base64
+
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+REPO_NAME = os.getenv("GITHUB_REPO")
+
+g = Github(GITHUB_TOKEN)
+repo = g.get_repo(REPO_NAME)
+
+def commit_changes():
+    try:
+        file_path = "bot.py"
+
+        contents = repo.get_contents(file_path)
+        new_content = contents.decoded_content.decode()
+
+        repo.update_file(
+            path=file_path,
+            message="🤖 Auto commit from Telegram bot",
+            content=new_content,
+            sha=contents.sha
+        )
+        return "✅ Commit successful via GitHub API"
+
+    except Exception as e:
+        return f"❌ Commit failed:\n{e}"
