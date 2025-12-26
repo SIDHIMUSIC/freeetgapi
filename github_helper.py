@@ -79,3 +79,24 @@ def commit_changes():
 
     except Exception as e:
         return f"❌ Commit failed:\n{e}"
+
+from github import Github
+import os
+
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+REPO_NAME = "SIDHIMUSIC/freeetgapi"   # change if needed
+
+def trigger_rollback():
+    g = Github(GITHUB_TOKEN)
+    repo = g.get_repo(REPO_NAME)
+
+    workflow = repo.get_workflow("deploy.yml")
+
+    workflow.create_dispatch(
+        ref="main",
+        inputs={
+            "rollback": "true"
+        }
+    )
+
+    return "🔁 Rollback triggered successfully"
