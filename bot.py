@@ -818,15 +818,17 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     else:
         system = "Reply shortly in Hinglish with emojis."
-            # #likh kr: Memory Logic Yaha Add Kiya
-    user_memory = get_memory(user.id) 
+                # #likh kr: System ko user ka naam aur purani yaadein bata rahe hain
+    system += f"\n\n👤 User Info:\nName: {user.first_name}"
     
+    user_memory = get_memory(user.id)
     if user_memory:
-        system += "\n\n🧠 MEMORY / CONTEXT:\n"
+        system += "\n\n🧠 SAVED MEMORY:\n"
         for key, value in user_memory.items():
             system += f"- {key}: {value}\n"
-        system += "\n(User ki saved memory ka dhyan rakh kar reply karo)"
-        
+    
+    system += "\n(Instructions: User ke naam aur memory ka use karke friendly reply karo)"
+    
 # ================= AI CALL =================
     reply = safe_ai([
         {"role": "system", "content": system},
