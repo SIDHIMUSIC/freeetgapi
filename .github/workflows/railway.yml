@@ -1,0 +1,19 @@
+name: Railway Deploy with Rollback
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Deploy to Railway
+      run: |
+        echo "Deploying..."
+        # Railway auto deploy trigger hota hai
