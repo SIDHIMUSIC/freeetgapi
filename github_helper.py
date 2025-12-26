@@ -47,3 +47,8 @@ def commit_changes():
 
     except Exception as e:
         return f"❌ Commit failed:\n{e}"
+
+def rollback_last_commit(repo):
+    repo.git.reset('--hard', 'HEAD~1')
+    origin = repo.remote(name='origin')
+    origin.push(force=True)
