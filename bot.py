@@ -49,6 +49,9 @@ async def is_admin(update, context):
     return m.status in ("administrator", "creator")
 # ================= SAVE CODE / TEXT =================
 async def save_code(update, context):
+    if not is_owner(update.effective_user.id):
+        return await update.message.reply_text("❌ Owner only command")
+
     if not context.args:
         return await update.message.reply_text(
             "❌ Use like:\n/save <your code or text>"
@@ -63,8 +66,83 @@ async def save_code(update, context):
     })
 
     await update.message.reply_text(
-        "✅ Code saved successfully 🧠"
+        "✅ Code saved successfully 🧠\n\n"
+        "GitHub me commit karna hai?\n"
+        "`/commit yes` ya `/commit no`",
+        parse_mode="Markdown"
     )
+    # ================= AI CODE REVIEW =================
+async def suggest(update, context):
+    if not is_owner(update.effective_user.id):
+        return await update.message.reply_text("❌ Owner only command")
+
+    last = codes.find_one(
+        {"user_id": update.effective_user.id},
+        sort=[("time", -1)]
+    )
+
+    if not last:
+        return await update.message.reply_text("❌ Koi saved code nahi mila")
+
+    prompt = (
+        "Review this Python code. "
+        "If wrong, suggest fixes and improvements.\n\n"
+        f"{last['code']}"
+    )
+
+    reply = safe_ai([
+        {"role": "system", "content": "You are a senior Python reviewer."},
+        {"role": "user", "content": prompt}
+    ])
+
+    await update.message.reply_text(
+        f"🧠 *AI Suggestion:*\n\n{reply}",
+        parse_mode="Markdown"
+    )
+    # ================= SHOW SAVED CODES =================
+async def mycodes(update, context):
+    if not is_owner(update.effective_user.id):
+        return await update.message.reply_text("❌ Owner only command")
+
+    data = list(
+        codes.find({"user_id": update.effective_user.id})
+        .sort("time", -1)
+        .limit(5)
+    )
+
+    if not data:
+        return await update.message.reply_text("📭 Koi saved code nahi mila")
+
+    text = "🗂 *Your Saved Codes:*\n\n"
+    for i, d in enumerate(data, 1):
+        code = d["code"]
+        if len(code) > 300:
+            code = code[:300] + "..."
+        text += f"*{i}.*\n```{code}```\n"
+
+    await update.message.reply_text(text, parse_mode="Markdown")
+    #======commit===============
+async def commit(update, context):
+    if not is_owner(update.effective_user.id):
+        return await update.message.reply_text("❌ Owner only command")
+
+    if not context.args:
+        return await update.message.reply_text(
+            "Use:\n/commit yes\n/commit no"
+        )
+
+    if context.args[0].lower() == "yes":
+        result = commit_changes()
+        await update.message.reply_text(result)
+    else:
+        await update.message.reply_text("❌ Commit cancel kar diya")
+# ================= CLEAR SAVED CODES =================
+async def clearcodes(update, context):
+    if not is_owner(update.effective_user.id):
+        return await update.message.reply_text("❌ Owner only command")
+
+    codes.delete_many({"user_id": update.effective_user.id})
+    await update.message.reply_text("🧹 All saved codes cleared")
 # ================= LOG EVERY MESSAGE =================
 async def log_message(update, context):
     if not update.message or not update.message.text:
@@ -790,27 +868,7 @@ async def owner_info(update, context):
         reply_markup=keyboard,
         disable_web_page_preview=True
     )
-# ================= GITHUB AUTO COMMIT =================
 
-async def suggest(update, context):
-    text = suggest_changes()
-    await update.message.reply_text(
-        text,
-        parse_mode="Markdown"
-    )
-
-
-async def commit(update, context):
-    if not context.args:
-        return await update.message.reply_text(
-            "Use:\n/commit yes\n/commit no"
-        )
-
-    if context.args[0].lower() == "yes":
-        result = commit_changes()
-        await update.message.reply_text(result)
-    else:
-        await update.message.reply_text("❌ Commit cancel kar diya")
 # ================= STIKCER ID =================
 #async def sticker_id(update, context):
 #    if update.message.sticker:
@@ -837,8 +895,13 @@ app.add_handler(CommandHandler("id", id_cmd))
 app.add_handler(CommandHandler("addbadword", addbadword))
 app.add_handler(CommandHandler("removebadword", removebadword))
 app.add_handler(CommandHandler("broadcast", broadcast))
+# ================= CODE STORAGE / AI REVIEW =================
+app.add_handler(CommandHandler("save", save_code))
+app.add_handler(CommandHandler("mycodes", mycodes))
+app.add_handler(CommandHandler("clearcodes", clearcodes))
 app.add_handler(CommandHandler("suggest", suggest))
 app.add_handler(CommandHandler("commit", commit))
+
 
 # 2️⃣ CALLBACK BUTTONS (IMPORTANT ORDER)
 app.add_handler(CallbackQueryHandler(help_callback, pattern="^help_"))
