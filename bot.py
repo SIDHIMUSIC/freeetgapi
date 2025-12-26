@@ -839,17 +839,7 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # ================= FINAL REPLY =================
     name = user.first_name or "Friend"
     final_reply = f"*{name}*,\n{reply.strip()}"
-      # 👇👇 BIRTHDAY WALA CODE YAHAN HAI 👇👇
-    import time
-    if time.strftime("%d-%m") == "27-12":
-        owner_mention = f"[Babu](tg://user?id={OWNER_ID})"
-        # Niche wali line ko dhyan se copy karna (Ye simple tarika hai)
-        final_reply += f"\n\n───────────────\n🎂 **HAPPY BIRTHDAY {owner_mention} Sir!** 🥳\nAaj mere Boss ka Janamdin hai! Sab log wish karo! 🎉🎈\n───────────────"
-    # 👆👆 YAHAN KHATAM 👆👆
-    
-
-
-    # ================= SEND =================
+ # ================= SEND =================
     await chatgpt_typing(update, context, final_reply)
 
     # ================= LOG =================
