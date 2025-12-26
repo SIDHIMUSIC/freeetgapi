@@ -71,6 +71,23 @@ async def save_code(update, context):
         "`/commit yes` ya `/commit no`",
         parse_mode="Markdown"
     )
+    # ================= FIX CONFIRM CALLBACK =================  👈 YAHI
+async def fix_confirm_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    # 🔐 OWNER ONLY
+    if query.from_user.id != OWNER_ID:
+        return await query.message.reply_text("❌ Owner only action")
+
+    data = query.data  # fix_yes / fix_no
+
+    if data == "fix_yes":
+        await query.message.reply_text("🛠 Fix apply kiya ja raha hai...")
+        # future: auto-fix + commit
+
+    elif data == "fix_no":
+        await query.message.reply_text("❌ Fix cancel kar diya")
     # ================= AI CODE REVIEW =================
 async def suggest(update, context):
     if not is_owner(update.effective_user.id):
