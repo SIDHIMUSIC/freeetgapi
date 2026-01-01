@@ -5,7 +5,9 @@ from github_helper import suggest_changes, commit_changes
 from github_helper import trigger_rollback
 import re 
 # function wale hndler 
-from function import get_daily_prompt
+#from function import get_daily_prompt
+# Bas ye ek line rahegi humesha. Naam change mat karna.
+from function import get_bot_extras
 
 
 import os, requests, random, asyncio, time
