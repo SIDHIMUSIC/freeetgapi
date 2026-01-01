@@ -40,13 +40,12 @@ NIGHT_THEMES = [
     "mazaak mein bolo ki 'phone rakh do aur so jao'."
 ]
 
-# ================= 3. MAIN LOGIC (SMART GREETING) =================
+# ================= 3. MAIN LOGIC (FIXED NAME & ARGUMENT) =================
 
-def get_daily_prompt():
+def get_bot_extras(user_name=None):
     """
-    Ye function AI ko strictly batayega ki:
-    - Sirf start mein wish karo.
-    - Baar-baar repeat mat karo.
+    Ye function ab 'get_bot_extras' ke naam se hai taaki
+    bot.py crash na ho.
     """
     
     # --- 1. FESTIVAL CHECK ---
