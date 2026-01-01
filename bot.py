@@ -822,9 +822,10 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         system = "Reply shortly in Hinglish with emojis."
                 # #likh kr: System ko user ka naam aur purani yaadein bata rahe hain
     system += f"\n\n👤 User Info:\nName: {user.first_name}"
-         # 👇👇👇 NEW AUTOMATIC LOGIC 👇👇👇
-    system += get_daily_prompt()
-    # 👆👆👆=========================👆👆👆
+           # 👇=== YE MASTER LINE HAI (ISKO KABHI MAT CHEDNA) ===👇
+    # Ye function.py se saara data (Festival, Time, Joke, News) le aayega
+    system += get_bot_extras(user.first_name)
+    # 👆==================================================
     
     #saved memories 
     
