@@ -4,6 +4,9 @@ import requests
 from github_helper import suggest_changes, commit_changes
 from github_helper import trigger_rollback
 import re 
+# Purane imports ke neeche add karo
+from function import check_festival  # 👈 Naam change ho gaya
+
 import os, requests, random, asyncio, time
 from pymongo import MongoClient
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -816,6 +819,15 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         system = "Reply shortly in Hinglish with emojis."
                 # #likh kr: System ko user ka naam aur purani yaadein bata rahe hain
     system += f"\n\n👤 User Info:\nName: {user.first_name}"
+    # 👇👇👇 YAHAN NAYA CODE ADD KIYA HAI 👇👇👇
+    # Ye function.py se check karega ki aaj koi tyohaar hai ya nahi
+    todays_event = check_festival()
+    
+    if todays_event:
+        system += f"\n\n🎉 IMPORTANT: Aaj '{todays_event}' hai. " \
+                  f"Apne reply ki shuruwat user ko '{todays_event}' wish karke hi karna!"
+    # 👆👆👆 YAHAN KHATAM 👆👆👆
+    #saved memories 
     
     user_memory = get_memory(user.id)
     if user_memory:
