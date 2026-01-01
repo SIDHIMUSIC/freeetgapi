@@ -4,8 +4,9 @@ import requests
 from github_helper import suggest_changes, commit_changes
 from github_helper import trigger_rollback
 import re 
-# Purane imports ke neeche add karo
-from function import check_festival  # 👈 Naam change ho gaya
+# function wale hndler 
+from function import get_daily_prompt
+
 
 import os, requests, random, asyncio, time
 from pymongo import MongoClient
@@ -819,19 +820,10 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         system = "Reply shortly in Hinglish with emojis."
                 # #likh kr: System ko user ka naam aur purani yaadein bata rahe hain
     system += f"\n\n👤 User Info:\nName: {user.first_name}"
-     # 👇👇👇 FUNCTION.PY SE CHECK KARO (IMPROVED VERSION) 👇👇👇
-    todays_event = check_festival()
+         # 👇👇👇 NEW AUTOMATIC LOGIC 👇👇👇
+    system += get_daily_prompt()
+    # 👆👆👆=========================👆👆👆
     
-    if todays_event:
-        system += (
-            f"\n\n🎉 SPECIAL EVENT ALERT: Aaj '{todays_event}' hai! "
-            f"Tumhe user ko ek dum unique, creative aur heartwarming Hinglish wish karni hai. "
-            f"Aisa wish likho jisme Shayari, Emojis aur Positivity ho, bilkul waisa jaisa log "
-            f"Google se 'Best Wishes' search karke bhejte hain. "
-            f"Sirf 'Happy {todays_event}' mat bolna, kuch alag aur khaas likhna pehle."
-        )
-    # 👆👆👆=============================👆👆👆
-
     #saved memories 
     
     user_memory = get_memory(user.id)
