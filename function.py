@@ -1,7 +1,7 @@
 import time
 import random
 
-# ================= CALENDAR DATA =================
+# ================= 1. CALENDAR DATA =================
 FESTIVAL_CALENDAR = {
     "01-01": "Happy New Year 2026 🎉",
     "14-01": "Makar Sankranti 🪁",
@@ -17,7 +17,7 @@ FESTIVAL_CALENDAR = {
     "31-12": "New Year's Eve 🎆"
 }
 
-# ================= CREATIVE THEMES (Har baar kuch naya) =================
+# ================= 2. CREATIVE THEMES (Har baar kuch naya) =================
 MORNING_THEMES = [
     "ek motivational quote ke saath Good Morning wish karo.",
     "ek funny lazy morning joke ke saath uthao.",
@@ -40,12 +40,13 @@ NIGHT_THEMES = [
     "mazaak mein bolo ki 'phone rakh do aur so jao'."
 ]
 
+# ================= 3. MAIN LOGIC (SMART GREETING) =================
+
 def get_daily_prompt():
     """
-    Ye function:
-    1. Pehle Festival check karega.
-    2. Agar Festival nahi hai, to Time check karega.
-    3. Time ke hisaab se Random Theme pick karega.
+    Ye function AI ko strictly batayega ki:
+    - Sirf start mein wish karo.
+    - Baar-baar repeat mat karo.
     """
     
     # --- 1. FESTIVAL CHECK ---
@@ -55,33 +56,35 @@ def get_daily_prompt():
     if event_name:
         return (
             f"\n\n🎉 SPECIAL EVENT: Aaj '{event_name}' hai! "
-            f"Apne reply ki shuruwat '{event_name}' wish karke hi karna. "
-            f"Wish ekdum creative aur dil se honi chahiye (Shayari/Emoji use karo)."
+            f"\n🤖 **RULE:** Agar user ne **Greeting (Hi/Hello)** kiya hai, tabhi usko '{event_name}' wish karna."
+            f" Agar wo normal sawaal puch raha hai, to baar-baar wish mat karna."
         )
 
     # --- 2. TIME CHECK (GM/GN Logic) ---
     hour = int(time.strftime("%H")) # Current Hour (0-23)
 
-    if 5 <= hour < 12:  # Subah 5 se 12 baje tak
+    if 5 <= hour < 12:
         time_status = "Morning"
         theme = random.choice(MORNING_THEMES)
         
-    elif 12 <= hour < 17:  # Dopahar 12 se 5 baje tak
+    elif 12 <= hour < 17:
         time_status = "Afternoon"
         theme = random.choice(NOON_THEMES)
         
-    elif 17 <= hour < 20:  # Shaam 5 se 8 baje tak
+    elif 17 <= hour < 20:
         time_status = "Evening"
         theme = "ek fresh evening tea/coffee wali vibe ke saath wish karo."
         
-    else:  # Raat 8 baje ke baad (ya Subah 5 se pehle)
+    else:
         time_status = "Night"
         theme = random.choice(NIGHT_THEMES)
 
-    # --- 3. FINAL INSTRUCTION FOR AI ---
+    # --- 3. FINAL INSTRUCTION (ANTI-REPETITION) ---
     return (
-        f"\n\n⏰ TIME UPDATE: Abhi '{time_status}' ka time hai. "
-        f"Agar user ne greeting (Hi/Hello) kiya hai, to usko '{theme}' "
-        f"Bas 'Good {time_status}' mat bolna, kuch creative likhna."
+        f"\n\n⏰ TIME CONTEXT: Abhi '{time_status}' ka time hai."
+        f"\n🤖 **STRICT INSTRUCTION:**"
+        f"\n1. **Sirf Tabhi Wish Karo:** Jab user ne conversation start ki ho (Hi, Hello, GM, GN, Start bola ho)."
+        f"\n2. **Theme Use Karo:** Agar wish kar rahe ho, to ye theme use karna: '{theme}'"
+        f"\n3. **NO REPEAT:** Agar user koi sawal puch raha hai ya normal baat kar raha hai, to 'Good {time_status}' bolne ki zaroorat nahi hai. Seedha jawab do."
     )
     
