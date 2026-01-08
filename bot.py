@@ -18,6 +18,9 @@ from telegram.ext import (
     CallbackQueryHandler, ContextTypes, filters
 )
 from fonts import convert_font
+from fonts import convert_font, available_fonts
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import CommandHandler, CallbackQueryHandler
 # ================= ENV =================
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
