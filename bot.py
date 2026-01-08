@@ -17,7 +17,7 @@ from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler,
     CallbackQueryHandler, ContextTypes, filters
 )
-
+from fonts import convert_font
 # ================= ENV =================
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -1086,6 +1086,54 @@ async def dare(update, context):
 
     final_reply = f"*{name}*,\n😈 Dare:\n{reply.strip()}"
     await update.message.reply_text(final_reply, parse_mode="Markdown")
+    # ================= FONT MENU HANDLER =================
+async def font_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message or not update.message.text:
+        return
+
+    text = update.message.text
+
+    # commands, links, very short text ignore
+    if text.startswith("/") or len(text) < 2:
+        return
+
+    context.user_data["font_text"] = text
+
+    keyboard = [
+        [
+            InlineKeyboardButton("𝗕𝗼𝗹𝗱", callback_data="font|bold"),
+            InlineKeyboardButton("Small Caps", callback_data="font|smallcaps"),
+        ],
+        [
+            InlineKeyboardButton("Circle", callback_data="font|circle"),
+            InlineKeyboardButton("Script", callback_data="font|script"),
+        ],
+        [
+            InlineKeyboardButton("Mono", callback_data="font|mono"),
+            InlineKeyboardButton("Double", callback_data="font|double"),
+        ],
+    ]
+
+    await update.message.reply_text(
+        "👇 Font choose karo:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+
+# ================= FONT CALLBACK =================
+async def font_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    _, style = query.data.split("|", 1)
+    text = context.user_data.get("font_text")
+
+    if not text:
+        await query.message.reply_text("⚠️ Text expire ho gaya, dobara bhejo.")
+        return
+
+    styled = convert_font(text, style)
+    await query.message.reply_text(styled)
 
 # ================= APP =================
 app = ApplicationBuilder().token(TOKEN).build()
@@ -1107,6 +1155,17 @@ app.add_handler(CommandHandler("addbadword", addbadword))
 app.add_handler(CommandHandler("removebadword", removebadword))
 app.add_handler(CommandHandler("broadcast", broadcast))
 app.add_handler(CommandHandler("teach", teach))
+# Normal text → font menu
+application.add_handler(
+    MessageHandler(filters.TEXT & ~filters.COMMAND, font_menu_handler),
+    group=2
+)
+
+# Button click → font convert
+application.add_handler(
+    CallbackQueryHandler(font_callback_handler, pattern="^font"),
+    group=2
+)
 # ================= CODE STORAGE / AI REVIEW =================
 app.add_handler(CommandHandler("save", save_code))   # 👈 MUST
 app.add_handler(CommandHandler("mycodes", mycodes))
