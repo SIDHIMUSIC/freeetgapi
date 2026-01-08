@@ -1087,54 +1087,53 @@ async def dare(update, context):
     final_reply = f"*{name}*,\n😈 Dare:\n{reply.strip()}"
     await update.message.reply_text(final_reply, parse_mode="Markdown")
     # ================= FONT MENU HANDLER =================
-async def font_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # /font ke baad jo text likha ho
-    text = " ".join(context.args)
-
-    if not text:
+# ================= /font COMMAND =================
+async def font_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args:
         await update.message.reply_text(
             "❌ Use like this:\n\n/font Kaise ho"
         )
         return
 
+    text = " ".join(context.args)
     context.user_data["font_text"] = text
 
-    keyboard = [
-        [
-            InlineKeyboardButton("Bold", callback_data="font|bold"),
-            InlineKeyboardButton("Small Caps", callback_data="font|smallcaps"),
-        ],
-        [
-            InlineKeyboardButton("Circle", callback_data="font|circle"),
-            InlineKeyboardButton("Script", callback_data="font|script"),
-        ],
-        [
-            InlineKeyboardButton("Mono", callback_data="font|mono"),
-            InlineKeyboardButton("Double", callback_data="font|double"),
-        ],
-    ]
+    buttons = []
+    row = []
+
+    for style in available_fonts():
+        row.append(
+            InlineKeyboardButton(
+                style.capitalize(),
+                callback_data=f"font|{style}"
+            )
+        )
+        if len(row) == 2:
+            buttons.append(row)
+            row = []
+
+    if row:
+        buttons.append(row)
 
     await update.message.reply_text(
         "👇 Font choose karo:",
-        reply_markup=InlineKeyboardMarkup(keyboard)
+        reply_markup=InlineKeyboardMarkup(buttons)
     )
-
-
-# ================= FONT CALLBACK =================
-async def font_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# ================= CALLBACK =================
+async def font_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    _, style = query.data.split("|", 1)
+    _, style = query.data.split("|")
     text = context.user_data.get("font_text")
 
     if not text:
-        await query.message.reply_text("⚠️ Text expire ho gaya, dobara bhejo.")
+        await query.message.reply_text("⚠️ Text expire ho gaya, /font dobara use karo")
         return
 
-    styled = convert_font(text, style)
-    await query.message.reply_text(styled)
-
+    result = convert_font(text, style)
+    await query.message.reply_text(result)
+    
 # ================= APP =================
 app = ApplicationBuilder().token(TOKEN).build()
 
@@ -1155,13 +1154,12 @@ app.add_handler(CommandHandler("addbadword", addbadword))
 app.add_handler(CommandHandler("removebadword", removebadword))
 app.add_handler(CommandHandler("broadcast", broadcast))
 app.add_handler(CommandHandler("teach", teach))
-# Normal text → font menu
+# /font command
+app.add_handler(CommandHandler("font", font_cmd))
+
+# font button click
 app.add_handler(
-    CommandHandler("font", font_menu_handler)
-)
-# Button click → font convert
-app.add_handler(
-    CallbackQueryHandler(font_callback_handler, pattern="^font"),
+    CallbackQueryHandler(font_callback_handler, pattern="^font\\|"),
     group=2
 )
 # ================= CODE STORAGE / AI REVIEW =================
@@ -1180,7 +1178,6 @@ app.add_handler(
 # 2️⃣ CALLBACK BUTTONS (IMPORTANT ORDER)
 app.add_handler(CallbackQueryHandler(help_callback, pattern="^help_"))
 app.add_handler(CallbackQueryHandler(lang_cb, pattern="^(open_lang|hi|en)$"))
-#app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 # 3️⃣ LOGS — SABSE PEHLE
 #app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, log_message))
