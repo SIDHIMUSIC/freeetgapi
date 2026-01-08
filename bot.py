@@ -1156,13 +1156,12 @@ app.add_handler(CommandHandler("addbadword", addbadword))
 app.add_handler(CommandHandler("removebadword", removebadword))
 app.add_handler(CommandHandler("broadcast", broadcast))
 app.add_handler(CommandHandler("teach", teach))
-# /font command
+# /font command only
 app.add_handler(CommandHandler("font", font_cmd))
 
-# font button click
+# font button clicks
 app.add_handler(
-    CallbackQueryHandler(font_callback_handler, pattern="^font\\|"),
-    group=2
+    CallbackQueryHandler(font_callback_handler, pattern="^font\\|")
 )
 # ================= CODE STORAGE / AI REVIEW =================
 app.add_handler(CommandHandler("save", save_code))   # 👈 MUST
