@@ -777,6 +777,21 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     text = update.message.text
     lower_text = text.lower()
+    
+    # ✅ REAL DATE
+    from datetime import datetime
+    import pytz
+    tz = pytz.timezone("Asia/Kolkata")
+    now = datetime.now(tz)
+    REAL_DATE = now.strftime("%d %B %Y")
+    REAL_DAY = now.strftime("%A")
+
+    # ✅ DATE HANDLER (AI BYPASS)
+    if "date" in lower_text:
+        await update.message.reply_text(
+            f"📅 Aaj ki date hai {REAL_DATE}\n📆 Aaj {REAL_DAY} hai 😊"
+        )
+        return
 
     # ❌ bot-banned user
     if is_bot_banned(user.id):
@@ -1108,7 +1123,7 @@ print("""
 ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   
 \033[0m
 \033[95m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-👑  HARRY • NEON AI BOT
+👑  HARRY •  AI BOT
 📢  Telegram : @SANATANI_BACHA
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 \033[0m
