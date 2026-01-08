@@ -1040,46 +1040,53 @@ async def owner_info(update, context):
      #       f"Sticker ID:\n<code>{update.message.sticker.file_id}</code>",
      #       parse_mode="HTML"
        # )
-######======truth#####
-# ====== AI TRUTH & DARE GAME ======
+## ====== AI TRUTH & DARE GAME (SAFE_AI BASED) ======
 
 async def truth(update, context):
-    system_prompt = """
-You are playing a Truth and Dare game with the user.
+    user = update.effective_user
+    name = user.first_name or "Friend"
 
-Rules:
-- Ask ONLY ONE truth question
-- Be fun, playful, human-like
-- Do NOT repeat old questions
-- Do NOT explain rules
-- No boring questions like name/age
-"""
-
-    user_prompt = "truth"
-    reply = await ask_ai(system_prompt, user_prompt)
-
-    await update.message.reply_text(
-        f"🤔 Truth:\n{reply}"
+    system = (
+        "You are playing a Truth game with the user. "
+        "Ask ONLY one creative, fun truth question. "
+        "Be human-like and playful. "
+        "Do NOT explain rules. "
+        "Do NOT ask name, age, or boring questions."
     )
+
+    text = "truth"
+
+    reply = safe_ai([
+        {"role": "system", "content": system},
+        {"role": "user", "content": text}
+    ])
+
+    final_reply = f"*{name}*,\n📸 Truth:\n{reply.strip()}"
+    await update.message.reply_text(final_reply, parse_mode="Markdown")
 
 
 async def dare(update, context):
-    system_prompt = """
-You are playing a Truth and Dare game with the user.
+    user = update.effective_user
+    name = user.first_name or "Friend"
 
-Rules:
-- Give ONLY ONE fun & SAFE dare
-- No illegal, no dangerous, no harassment
-- Dare should be doable in chat
-- Be playful, not robotic
-"""
-
-    user_prompt = "dare"
-    reply = await ask_ai(system_prompt, user_prompt)
-
-    await update.message.reply_text(
-        f"😈 Dare:\n{reply}"
+    system = (
+        "You are playing a Dare game with the user. "
+        "Give ONLY one fun and SAFE dare. "
+        "Dare must be doable in chat. "
+        "No illegal, dangerous, or harmful tasks. "
+        "Do NOT explain rules."
     )
+
+    text = "dare"
+
+    reply = safe_ai([
+        {"role": "system", "content": system},
+        {"role": "user", "content": text}
+    ])
+
+    final_reply = f"*{name}*,\n😈 Dare:\n{reply.strip()}"
+    await update.message.reply_text(final_reply, parse_mode="Markdown")
+
 # ================= APP =================
 app = ApplicationBuilder().token(TOKEN).build()
 
