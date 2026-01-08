@@ -1094,7 +1094,7 @@ async def dare(update, context):
 async def font_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
         await update.message.reply_text(
-            "❌ Use like this:\n\n/font Kaise ho"
+            "❌ Use like this:\n/font Kaise ho"
         )
         return
 
@@ -1123,7 +1123,7 @@ async def font_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=InlineKeyboardMarkup(buttons)
     )
 # ================= CALLBACK =================
-async def font_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def font_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
@@ -1131,12 +1131,11 @@ async def font_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = context.user_data.get("font_text")
 
     if not text:
-        await query.message.reply_text("⚠️ Text expire ho gaya, /font dobara use karo")
+        await query.message.reply_text("⚠️ Text expire ho gaya, dobara /font use karo")
         return
 
-    result = convert_font(text, style)
-    await query.message.reply_text(result)
-    
+    styled = convert_font(text, style)
+    await query.message.reply_text(styled)
 # ================= APP =================
 app = ApplicationBuilder().token(TOKEN).build()
 
