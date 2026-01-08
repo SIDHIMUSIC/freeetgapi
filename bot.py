@@ -1156,13 +1156,13 @@ app.add_handler(CommandHandler("removebadword", removebadword))
 app.add_handler(CommandHandler("broadcast", broadcast))
 app.add_handler(CommandHandler("teach", teach))
 # Normal text → font menu
-application.add_handler(
+app.add_handler(
     MessageHandler(filters.TEXT & ~filters.COMMAND, font_menu_handler),
     group=2
 )
 
 # Button click → font convert
-application.add_handler(
+app.add_handler(
     CallbackQueryHandler(font_callback_handler, pattern="^font"),
     group=2
 )
