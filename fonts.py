@@ -64,10 +64,11 @@ FONT_MAP = {
         "abcdefghijklmnopqrstuvwxyz",
         "ⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩ"
     ),
-    "flip": str.maketrans(
-    "abcdefghijklmnopqrstuvwxyz",
-    "ɐqɔpǝɟɓɥᴉɾʞʃɯuodbɹsʇnʌʍxʎz"
-), 
+    "cloud": str.maketrans(
+        "abcdefghijklmnopqrstuvwxyz",
+        "ᶜˡᵒᵘᵈᶜˡᵒᵘᵈᶜˡᵒᵘᵈᶜˡᵒᵘᵈᶜˡᵒᵘᵈ"
+    ),
+
     # 31–50 SYMBOL / DECOR
     "underline": str.maketrans(
         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -80,23 +81,14 @@ FONT_MAP = {
     ),
 }
 
-# ================= SPECIAL EFFECTS =================
-# ================= SPECIAL EFFECTS =================
-def underline(text: str) -> str:
-    return "".join(ch + "̲" if ch != " " else " " for ch in text)
+# ================= CONVERTER =================
 
-def strike(text: str) -> str:
-    return "".join(ch + "̶" if ch != " " else " " for ch in text)
-
-# ================= MAIN CONVERTER =================
 def convert_font(text: str, style: str) -> str:
-    if style == "underline":
-        return underline(text)
-    if style == "strike":
-        return strike(text)
-
     table = FONT_MAP.get(style)
-    return text.translate(table) if table else text
+    if not table:
+        return text
+    return text.translate(table)
+
 
 def available_fonts():
-    return list(FONT_MAP.keys()) + ["underline", "strike"]
+    return list(FONT_MAP.keys())
