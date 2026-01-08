@@ -1041,24 +1041,45 @@ async def owner_info(update, context):
      #       parse_mode="HTML"
        # )
 ######======truth#####
-import random
+# ====== AI TRUTH & DARE GAME ======
 
 async def truth(update, context):
-    questions = [
-        "Tumhara sabse gehra raaz kya hai? 🤫",
-        "Last time kab roye the aur kyu? 😢",
-        "Apne crush ka naam batao! ❤️"
-    ]
-    await update.message.reply_text(f"🤥 **Truth:** {random.choice(questions)}", parse_mode="Markdown")
+    system_prompt = """
+You are playing a Truth and Dare game with the user.
+
+Rules:
+- Ask ONLY ONE truth question
+- Be fun, playful, human-like
+- Do NOT repeat old questions
+- Do NOT explain rules
+- No boring questions like name/age
+"""
+
+    user_prompt = "truth"
+    reply = await ask_ai(system_prompt, user_prompt)
+
+    await update.message.reply_text(
+        f"🤔 Truth:\n{reply}"
+    )
+
 
 async def dare(update, context):
-    tasks = [
-        "Apni sabse funny photo bhejo group me! 😂",
-        "Voice note me gaana gaa ke bhejo! 🎤",
-        "Kisi anjaan number ko call karke prank karo! 📞"
-    ]
-    await update.message.reply_text(f"😈 **Dare:** {random.choice(tasks)}", parse_mode="Markdown")
-    
+    system_prompt = """
+You are playing a Truth and Dare game with the user.
+
+Rules:
+- Give ONLY ONE fun & SAFE dare
+- No illegal, no dangerous, no harassment
+- Dare should be doable in chat
+- Be playful, not robotic
+"""
+
+    user_prompt = "dare"
+    reply = await ask_ai(system_prompt, user_prompt)
+
+    await update.message.reply_text(
+        f"😈 Dare:\n{reply}"
+    )
 # ================= APP =================
 app = ApplicationBuilder().token(TOKEN).build()
 
