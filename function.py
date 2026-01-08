@@ -3,7 +3,7 @@ import random
 
 # ================= 1. CALENDAR DATA =================
 FESTIVAL_CALENDAR = {
-    "01-01": "Happy New Year 2026 🎉",
+    "01-01": "Happy New Year  🎉",
     "14-01": "Makar Sankranti 🪁",
     "26-01": "Happy Republic Day 🇮🇳",
     "14-02": "Valentine's Day ❤️",
@@ -43,47 +43,41 @@ NIGHT_THEMES = [
 # ================= 3. MAIN LOGIC (FIXED NAME & ARGUMENT) =================
 
 def get_bot_extras(user_name=None):
-    """
-    Ye function ab 'get_bot_extras' ke naam se hai taaki
-    bot.py crash na ho.
-    """
-    
-    # --- 1. FESTIVAL CHECK ---
-    today = time.strftime("%d-%m")
-    event_name = FESTIVAL_CALENDAR.get(today)
+    tz = pytz.timezone("Asia/Kolkata")
+    now = datetime.now(tz)
 
+    today = now.strftime("%d-%m")
+    hour = now.hour
+
+    # FESTIVAL CHECK
+    event_name = FESTIVAL_CALENDAR.get(today)
     if event_name:
         return (
-            f"\n\n🎉 SPECIAL EVENT: Aaj '{event_name}' hai! "
-            f"\n🤖 **RULE:** Agar user ne **Greeting (Hi/Hello)** kiya hai, tabhi usko '{event_name}' wish karna."
-            f" Agar wo normal sawaal puch raha hai, to baar-baar wish mat karna."
+            f"\n\n🎉 SPECIAL EVENT: Aaj '{event_name}' hai!"
+            f"\n🤖 Rule: Sirf greeting pe hi wish karna."
         )
 
-    # --- 2. TIME CHECK (GM/GN Logic) ---
-    hour = int(time.strftime("%H")) # Current Hour (0-23)
-
+    # TIME LOGIC
     if 5 <= hour < 12:
         time_status = "Morning"
         theme = random.choice(MORNING_THEMES)
-        
+
     elif 12 <= hour < 17:
         time_status = "Afternoon"
         theme = random.choice(NOON_THEMES)
-        
-    elif 17 <= hour < 20:
+
+    elif 17 <= hour < 21:
         time_status = "Evening"
         theme = "ek fresh evening tea/coffee wali vibe ke saath wish karo."
-        
+
     else:
         time_status = "Night"
         theme = random.choice(NIGHT_THEMES)
 
-    # --- 3. FINAL INSTRUCTION (ANTI-REPETITION) ---
     return (
         f"\n\n⏰ TIME CONTEXT: Abhi '{time_status}' ka time hai."
-        f"\n🤖 **STRICT INSTRUCTION:**"
-        f"\n1. **Sirf Tabhi Wish Karo:** Jab user ne conversation start ki ho (Hi, Hello, GM, GN, Start bola ho)."
-        f"\n2. **Theme Use Karo:** Agar wish kar rahe ho, to ye theme use karna: '{theme}'"
-        f"\n3. **NO REPEAT:** Agar user koi sawal puch raha hai ya normal baat kar raha hai, to 'Good {time_status}' bolne ki zaroorat nahi hai. Seedha jawab do."
+        f"\n🤖 Rules:"
+        f"\n1. Greeting pe hi wish karo."
+        f"\n2. Theme use karo: '{theme}'."
+        f"\n3. Normal sawal pe wish mat repeat karo."
     )
-    
