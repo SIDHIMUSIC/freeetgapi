@@ -64,11 +64,10 @@ FONT_MAP = {
         "abcdefghijklmnopqrstuvwxyz",
         "ⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩ"
     ),
-    "cloud": str.maketrans(
-        "abcdefghijklmnopqrstuvwxyz",
-        "ᶜˡᵒᵘᵈᶜˡᵒᵘᵈᶜˡᵒᵘᵈᶜˡᵒᵘᵈᶜˡᵒᵘᵈ"
-    ),
-
+    "flip": str.maketrans(
+    "abcdefghijklmnopqrstuvwxyz",
+    "ɐqɔpǝɟɓɥᴉɾʞʃɯuodbɹsʇnʌʍxʎz"
+), 
     # 31–50 SYMBOL / DECOR
     "underline": str.maketrans(
         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
