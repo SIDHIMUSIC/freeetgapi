@@ -1088,20 +1088,20 @@ async def dare(update, context):
     await update.message.reply_text(final_reply, parse_mode="Markdown")
     # ================= FONT MENU HANDLER =================
 async def font_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not update.message or not update.message.text:
-        return
+    # /font ke baad jo text likha ho
+    text = " ".join(context.args)
 
-    text = update.message.text
-
-    # commands, links, very short text ignore
-    if text.startswith("/") or len(text) < 2:
+    if not text:
+        await update.message.reply_text(
+            "❌ Use like this:\n\n/font Kaise ho"
+        )
         return
 
     context.user_data["font_text"] = text
 
     keyboard = [
         [
-            InlineKeyboardButton("𝗕𝗼𝗹𝗱", callback_data="font|bold"),
+            InlineKeyboardButton("Bold", callback_data="font|bold"),
             InlineKeyboardButton("Small Caps", callback_data="font|smallcaps"),
         ],
         [
@@ -1157,10 +1157,8 @@ app.add_handler(CommandHandler("broadcast", broadcast))
 app.add_handler(CommandHandler("teach", teach))
 # Normal text → font menu
 app.add_handler(
-    MessageHandler(filters.TEXT & ~filters.COMMAND, font_menu_handler),
-    group=2
+    CommandHandler("font", font_menu_handler)
 )
-
 # Button click → font convert
 app.add_handler(
     CallbackQueryHandler(font_callback_handler, pattern="^font"),
