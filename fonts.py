@@ -82,14 +82,12 @@ FONT_MAP = {
 }
 
 # ================= SPECIAL EFFECTS =================
+# ================= SPECIAL EFFECTS =================
 def underline(text: str) -> str:
     return "".join(ch + "̲" if ch != " " else " " for ch in text)
 
 def strike(text: str) -> str:
     return "".join(ch + "̶" if ch != " " else " " for ch in text)
-
-def cloud(text: str) -> str:
-    return "☁️ " + " ☁️ ".join(text) + " ☁️"
 
 # ================= MAIN CONVERTER =================
 def convert_font(text: str, style: str) -> str:
@@ -97,11 +95,9 @@ def convert_font(text: str, style: str) -> str:
         return underline(text)
     if style == "strike":
         return strike(text)
-    if style == "cloud":
-        return cloud(text)
 
     table = FONT_MAP.get(style)
     return text.translate(table) if table else text
 
 def available_fonts():
-    return list(FONT_MAP.keys()) + ["underline", "strike", "cloud"]
+    return list(FONT_MAP.keys()) + ["underline", "strike"]
