@@ -21,23 +21,26 @@ FESTIVAL_CALENDAR = {
 
 
 # ================= 3. MAIN LOGIC (FIXED NAME & ARGUMENT) =================
-
-def get_bot_extras(user_name=None):
+def get_bot_extras(user_id, user_name=None):
     tz = pytz.timezone("Asia/Kolkata")
     now = datetime.now(tz)
 
     today = now.strftime("%d-%m")
     hour = now.hour
 
-    # FESTIVAL CHECK
+    # ❌ Agar already wish ho chuki hai → kuch mat bhejo
+    if USER_WISHED.get(user_id):
+        return ""
+
+    # 🎉 FESTIVAL CHECK (SIRF PEHLI BAAR)
     event_name = FESTIVAL_CALENDAR.get(today)
     if event_name:
-        return (
-            f"\n\n🎉 SPECIAL EVENT: Aaj '{event_name}' hai!"
-            f"\n🤖 Rule: Sirf greeting pe hi wish karna."
-        )
+        USER_WISHED[user_id] = True
+        return f"\n\n🪁 {event_name} ki hardik shubhkamnayein 😊"
 
-    # TIME LOGIC
+    # ⏰ TIME BASED GREETING (SIRF PEHLI BAAR)
+    USER_WISHED[user_id] = True
+
     if 5 <= hour < 12:
         time_status = "Morning"
         theme = random.choice(MORNING_THEMES)
