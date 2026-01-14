@@ -18,28 +18,7 @@ FESTIVAL_CALENDAR = {
     "31-12": "New Year's Eve 🎆"
 }
 
-# ================= 2. CREATIVE THEMES (Har baar kuch naya) =================
-MORNING_THEMES = [
-    "ek motivational quote ke saath Good Morning wish karo.",
-    "ek funny lazy morning joke ke saath uthao.",
-    "kisi positive fact ya wisdom ke saath din ki shuruwat karo.",
-    "ek khoobsurat Hindi shayari ke saath Good Morning bolo.",
-    "pure energetic aur excitement ke saath Good Morning bolo."
-]
 
-NOON_THEMES = [
-    "user se pucho lunch kiya ya nahi, thoda caring style mein.",
-    "ek chota sa funny remark maaro ki 'neend aa rahi hai kya?'.",
-    "batao ki aadha din khatam ho gaya, baaki aadha full power mein nikaalo.",
-    "thoda sarcasm use karo ki 'kaam kar rahe ho ya time pass?'."
-]
-
-NIGHT_THEMES = [
-    "din bhar ki thakan mitane wali ek sukoon bhari baat bolo.",
-    "ek deep meaningful thought ya shayari ke saath Good Night bolo.",
-    "pucho ki 'aaj ka din kaisa gaya?' friendly style mein.",
-    "mazaak mein bolo ki 'phone rakh do aur so jao'."
-]
 
 # ================= 3. MAIN LOGIC (FIXED NAME & ARGUMENT) =================
 
