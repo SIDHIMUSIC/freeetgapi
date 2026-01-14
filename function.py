@@ -1,3 +1,4 @@
+USER_WISHED = {}
 import time
 import random
 import pytz
