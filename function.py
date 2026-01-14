@@ -59,5 +59,4 @@ def get_bot_extras(user_name=None):
         f"\n🤖 Rules:"
         f"\n1. Greeting pe hi wish karo."
         f"\n2. Theme use karo: '{theme}'."
-        f"\n3. Normal sawal pe wish mat repeat karo."
     )
