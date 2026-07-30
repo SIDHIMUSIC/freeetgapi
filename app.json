@@ -1,27 +1,39 @@
 {
   "name": "FreeEtgAPI",
-  "description": "Fast & Smooth Telegram Bot",
+  "description": "Fast & Smooth Telegram AI Bot",
   "repository": "https://github.com/SIDHIMUSIC/freeetgapi",
   "logo": "https://raw.githubusercontent.com/SIDHIMUSIC/freeetgapi/main/logo.png",
   "keywords": [
     "telegram",
     "python",
+    "ai",
     "bot"
   ],
   "env": {
-    "BOT_TOKEN": {
+    "TELEGRAM_BOT_TOKEN": {
       "description": "Telegram Bot Token"
     },
-    "API_ID": {
-      "description": "Telegram API ID"
+    "OPENROUTER_API_KEY": {
+      "description": "OpenRouter API Key"
     },
-    "API_HASH": {
-      "description": "Telegram API HASH"
+    "MONGODB_URI": {
+      "description": "MongoDB Connection URI"
+    },
+    "OWNER_ID": {
+      "description": "Telegram User ID of Bot Owner"
+    },
+    "GITHUB_TOKEN": {
+      "description": "GitHub Personal Access Token"
+    },
+    "LOG_GROUP_ID": {
+      "description": "Telegram Log Group ID (Optional)",
+      "required": false
     }
   },
   "formation": {
     "worker": {
-      "quantity": 1
+      "quantity": 1,
+      "size": "basic"
     }
   }
 }
