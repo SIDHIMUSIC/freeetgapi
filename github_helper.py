@@ -1,10 +1,18 @@
 from github import Github
 import os
-import base64
 import subprocess
 from pathlib import Path
 
 REPO_DIR = Path(".")
+
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+REPO_NAME = "SIDHIMUSIC/freeetgapi"   # Ya os.getenv("GITHUB_REPO")
+
+if not GITHUB_TOKEN:
+    raise ValueError("GITHUB_TOKEN is missing!")
+
+g = Github(GITHUB_TOKEN)
+repo = g.get_repo(REPO_NAME)
 
 
 def get_git_diff():
@@ -14,10 +22,7 @@ def get_git_diff():
             cwd=REPO_DIR
         ).decode()
 
-        if not diff.strip():
-            return None
-
-        return diff
+        return diff if diff.strip() else None
 
     except Exception as e:
         return f"ERROR: {e}"
@@ -34,8 +39,8 @@ def suggest_changes():
         "```diff\n"
         f"{diff[:3500]}\n"
         "```\n\n"
-        "👉 `/commit yes` = GitHub commit\n"
-        "👉 `/commit no` = Cancel"
+        "👉 /commit yes = GitHub commit\n"
+        "👉 /commit no = Cancel"
     )
 
 
@@ -46,60 +51,36 @@ def commit_changes():
             ["git", "commit", "-m", "Auto commit by Telegram Bot 🤖"]
         )
         subprocess.check_call(["git", "push"])
+
         return "✅ GitHub par successfully commit & push ho gaya 🚀"
 
     except Exception as e:
         return f"❌ Commit failed:\n{e}"
 
-def rollback_last_commit(repo):
-    repo.git.reset('--hard', 'HEAD~1')
-    origin = repo.remote(name='origin')
-    origin.push(force=True)
-from github import Github
-import os
-import base64
 
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-REPO_NAME = os.getenv("GITHUB_REPO")
-
-g = Github(GITHUB_TOKEN)
-repo = g.get_repo(REPO_NAME)
-
-def commit_changes():
+def rollback_last_commit():
     try:
-        file_path = "bot.py"
+        subprocess.check_call(["git", "reset", "--hard", "HEAD~1"])
+        subprocess.check_call(["git", "push", "--force"])
 
-        contents = repo.get_contents(file_path)
-        new_content = contents.decoded_content.decode()
-
-        repo.update_file(
-            path=file_path,
-            message="🤖 Auto commit from Telegram bot",
-            content=new_content,
-            sha=contents.sha
-        )
-        return "✅ Commit successful via GitHub API"
+        return "🔁 Last commit rollback successful."
 
     except Exception as e:
-        return f"❌ Commit failed:\n{e}"
+        return f"❌ Rollback failed:\n{e}"
 
-from github import Github
-import os
-
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-REPO_NAME = "SIDHIMUSIC/freeetgapi"   # change if needed
 
 def trigger_rollback():
-    g = Github(GITHUB_TOKEN)
-    repo = g.get_repo(REPO_NAME)
+    try:
+        workflow = repo.get_workflow("deploy.yml")
 
-    workflow = repo.get_workflow("deploy.yml")
+        workflow.create_dispatch(
+            ref="main",
+            inputs={
+                "rollback": "true"
+            }
+        )
 
-    workflow.create_dispatch(
-        ref="main",
-        inputs={
-            "rollback": "true"
-        }
-    )
+        return "🔁 Rollback workflow triggered."
 
-    return "🔁 Rollback triggered successfully"
+    except Exception as e:
+        return f"❌ Workflow trigger failed:\n{e}"
